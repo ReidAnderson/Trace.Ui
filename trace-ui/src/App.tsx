@@ -1,11 +1,26 @@
-import React from 'react';
-import logo from './logo.svg';
 import './App.css';
 import { styled } from '@mui/material/styles';
-import Box from '@mui/material/Box';
-import Paper from '@mui/material/Paper';
-import { Button, Checkbox, Divider, FormControlLabel, Grid, Stack, TextField } from '@mui/material';
-import { FlamegraphRenderer } from '@pyroscope/flamegraph';
+import { Box, Paper, Button, Checkbox, Divider, FormControlLabel, Grid, Stack, TextField } from '@mui/material';
+import { SpanCriteria, TraceRequirement } from './Interfaces';
+import { Formik, FormikErrors, Form, FieldArray, useFormikContext, Field } from 'formik';
+import { FlameGraph, ServiceGraph } from './FlameGraph';
+import { v4 as uuidv4 } from "uuid";
+
+type FormInputs = TraceRequirement;
+
+const initialValues: FormInputs = {
+  spanFilter: [],
+  requiredSpans: [],
+  disallowedSpans: []
+}
+
+function getEmptySpanCriteria(parentSpanId?: string): SpanCriteria {
+  return {
+    spanId: uuidv4(),
+    parentSpanId: parentSpanId,
+    useRegex: false,
+  }
+}
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
@@ -15,23 +30,56 @@ const Item = styled(Paper)(({ theme }) => ({
   color: theme.palette.text.secondary,
 }));
 
-function Span() {
+export interface SpanProps {
+  span: SpanCriteria;
+  name: string;
+  index: number;
+}
+
+function Span(props: SpanProps) {
+  const { setFieldValue, values, ...formik } = useFormikContext<FormInputs>();
+
   return (
     <Grid container spacing={2}>
 
       <Grid item xs={12}>
-        <TextField id="outlined-basic" label="Span Name" variant="outlined" />
-        <TextField id="outlined-basic" label="Service Name" variant="outlined" />
+        <p>SpanId: {props.span.spanId}</p>
+        <p>ParentSpanId: {props.span.parentSpanId ?? "NONE"}</p>
+        <TextField
+          id="outlined-basic"
+          label="Span Name"
+          value={props.span.spanName}
+          onChange={(e) => setFieldValue(`${props.name}.${props.index}.spanName`, e.target.value)}
+          variant="outlined" />
+        <TextField
+          id="outlined-basic"
+          label="Service Name"
+          value={props.span.serviceName}
+          onChange={(e) => setFieldValue(`${props.name}.${props.index}.serviceName`, e.target.value)}
+          variant="outlined" />
       </Grid>
       <Grid item xs={12}>
-        <TextField id="outlined-basic" label="Parent Service Name" variant="outlined" />
-        <FormControlLabel control={<Checkbox defaultChecked />} label="Use Regex" />
+        <TextField
+          id="outlined-basic"
+          label="Parent Service Name"
+          value={props.span.parentServiceName}
+          variant="outlined" />
+        <Field
+          name={`${props.name}.${props.index}.useRegex`}
+          type="checkbox"
+          render={({ field }: any) => (<FormControlLabel
+            control={<Checkbox {...field} checked={field.value} />}
+            label="Use Regex"
+          />)} />
+
       </Grid>
       <Grid item xs={12}>
         <TextField
           id="duration-min"
           label="Minimum Duration (ms)"
           type="number"
+          value={props.span.minDuration}
+          onChange={(e) => setFieldValue(`${props.name}.${props.index}.minDuration`, e.target.value)}
           InputLabelProps={{
             shrink: true,
           }}
@@ -40,6 +88,8 @@ function Span() {
           id="duration-max"
           label="Maximum Duration (ms)"
           type="number"
+          value={props.span.maxDuration}
+          onChange={(e) => setFieldValue(`${props.name}.${props.index}.maxDuration`, e.target.value)}
           InputLabelProps={{
             shrink: true,
           }}
@@ -49,175 +99,120 @@ function Span() {
   );
 }
 
-function SpanList() {
+export interface SpanListProps {
+  criteria: SpanCriteria[];
+  name: string;
+}
+
+function SpanList(props: SpanListProps) {
   return (
-    <Stack
-      direction="column"
-      justifyContent="center"
-      alignItems="center"
-      divider={<Divider orientation="horizontal" flexItem />}
-      spacing={2}>
-      <Span />
-      <Span />
-      <Button variant='contained'>Add Span</Button>
-    </Stack>
+    <FieldArray name={props.name}>
+      {(arrayHelpers) => (
+        <Stack
+          direction="column"
+          justifyContent="center"
+          alignItems="center"
+          divider={<Divider orientation="horizontal" flexItem />}
+          spacing={2}>
+          {props.criteria && props.criteria.length > 0 ? props.criteria.map((criteria, index) => {
+            return (
+              <>
+                <Span span={criteria} name={props.name} index={index} />
+                <Button variant='contained' onClick={() => arrayHelpers.push(getEmptySpanCriteria(criteria.spanId))}>Add Child Span</Button>
+                <Button variant='contained' onClick={() => arrayHelpers.remove(index)}>Delete</Button>
+              </>
+            )
+          }) : (
+            <Button variant='contained' onClick={() => arrayHelpers.push(getEmptySpanCriteria())}>Add Span</Button>
+          )}
+        </Stack>)}
+    </FieldArray>
   );
 }
 
-function FlameGraph() {
-  const SimpleTree = {
-    version: 1,
-    flamebearer: {
-      names: [
-        'total',
-        'runtime.mcall',
-        'runtime.park_m',
-        'runtime.schedule',
-        'runtime.resetspinning',
-        'runtime.wakep',
-        'runtime.startm',
-        'runtime.notewakeup',
-        'runtime.semawakeup',
-        'runtime.pthread_cond_signal',
-        'runtime.findrunnable',
-        'runtime.netpoll',
-        'runtime.kevent',
-        'runtime.main',
-        'main.main',
-        'github.com/pyroscope-io/client/pyroscope.TagWrapper',
-        'runtime/pprof.Do',
-        'github.com/pyroscope-io/client/pyroscope.TagWrapper.func1',
-        'main.main.func1',
-        'main.slowFunction',
-        'main.slowFunction.func1',
-        'main.work',
-        'runtime.asyncPreempt',
-        'main.fastFunction',
-        'main.fastFunction.func1',
-      ],
-      levels: [
-        [0, 609, 0, 0],
-        [0, 606, 0, 13, 0, 3, 0, 1],
-        [0, 606, 0, 14, 0, 3, 0, 2],
-        [0, 606, 0, 15, 0, 3, 0, 3],
-        [0, 606, 0, 16, 0, 1, 0, 10, 0, 2, 0, 4],
-        [0, 606, 0, 17, 0, 1, 0, 11, 0, 2, 0, 5],
-        [0, 606, 0, 18, 0, 1, 1, 12, 0, 2, 0, 6],
-        [0, 100, 0, 23, 0, 506, 0, 19, 1, 2, 0, 7],
-        [0, 100, 0, 15, 0, 506, 0, 16, 1, 2, 0, 8],
-        [0, 100, 0, 16, 0, 506, 0, 20, 1, 2, 2, 9],
-        [0, 100, 0, 17, 0, 506, 493, 21],
-        [0, 100, 0, 24, 493, 13, 13, 22],
-        [0, 100, 97, 21],
-        [97, 3, 3, 22],
-      ],
-      numTicks: 609,
-      maxSelf: 493,
-    },
-    metadata: {
-      appName: 'simple.golang.app.cpu',
-      name: 'simple.golang.app.cpu 2022-09-06T12:16:31Z',
-      startTime: 1662466591,
-      endTime: 1662470191,
-      query: 'simple.golang.app.cpu{}',
-      maxNodes: 1024,
-      format: 'single' as const,
-      sampleRate: 100,
-      spyName: 'gospy' as const,
-      units: 'samples' as const,
-    },
-    timeline: {
-      startTime: 1662466590,
-      samples: [
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 610, 0,
-      ],
-      durationDelta: 10,
-    },
-  };
+function FormContent() {
+  const { setFieldValue, values, ...formik } = useFormikContext<FormInputs>();
 
-  // https://github.com/jaegertracing/jaeger-ui/blob/main/packages/jaeger-ui/src/components/TracePage/TraceFlamegraph/index.tsx
-  // https://github.com/grafana/pyroscope/blob/9e55dd1235a700bfe8f471090ad7c6429a83db18/public/app/legacy/flamegraph/FlameGraph/FlameGraphComponent/Flamegraph.ts
+  console.log(JSON.stringify(values));
 
   return (
-    <Box className="Flamegraph-wrapper">
-      <FlamegraphRenderer
-        profile={SimpleTree}
-        onlyDisplay="flamegraph"
-        showToolbar={false}
-      />
-    </Box>
-  );
-}
+    <Grid container spacing={2}>
+      <Grid item xs={4}>
+        <Item>Span Filter: Any trace containing a span that matches the following criteria will be evaluated
+          <Stack
+            direction="column"
+            justifyContent="center"
+            alignItems="flex-start"
+            spacing={2}
+          >
+            <TextField id="outlined-basic" label="Span Name" variant="outlined" />
+            <TextField id="outlined-basic" label="Service Name" variant="outlined" />
+            <FormControlLabel control={<Checkbox defaultChecked />} label="Use Regex" />
+          </Stack>
+        </Item>
+      </Grid>
+      <Grid item xs={4}>
+        <Item>Required Spans: The trace must contain a match for all of the following spans
+          <SpanList criteria={values.requiredSpans} name="requiredSpans" />
+        </Item>
+      </Grid>
+      <Grid item xs={4}>
+        <Item>Disallowed Spans: The trace cannot contain a match for any of the following spans
+          <SpanList criteria={values.disallowedSpans} name="disallowedSpans" />
+        </Item>
+      </Grid>
+      <Grid item xs={12}>
+        <Item>Required Spans Visualization
+          <FlameGraph />
+          <ServiceGraph />
+        </Item>
+      </Grid>
+      <Grid item xs={12}>
+        <Item>Evaluated Trace:
 
-function ServiceGraph() {
-  return (
-    <p>Dependency Graph</p>
+          <TextField
+            id="outlined-multiline-static"
+            label="Multiline"
+            multiline
+            rows={4}
+            defaultValue="Default Value"
+          />
+        </Item>
+      </Grid>
+      <Grid item xs={12}>
+        <Item>Result:
+        </Item>
+      </Grid>
+    </Grid>
   )
 }
 
 function App() {
   return (
     <Box sx={{ flexGrow: 1 }}>
-      <Grid container spacing={2}>
-        <Grid item xs={4}>
-          <Item>Span Filter: Any trace containing a span that matches the following criteria will be evaluated
-            <Stack
-              direction="column"
-              justifyContent="center"
-              alignItems="flex-start"
-              spacing={2}
-            >
-              <TextField id="outlined-basic" label="Span Name" variant="outlined" />
-              <TextField id="outlined-basic" label="Service Name" variant="outlined" />
-              <FormControlLabel control={<Checkbox defaultChecked />} label="Use Regex" />
-            </Stack>
-          </Item>
-        </Grid>
-        <Grid item xs={4}>
-          <Item>Required Spans: The trace must contain a match for all of the following spans
-            <SpanList />
-          </Item>
-        </Grid>
-        <Grid item xs={4}>
-          <Item>Disallowed Spans: The trace cannot contain a match for any of the following spans
-            <SpanList />
-          </Item>
-        </Grid>
-        <Grid item xs={12}>
-          <Item>Required Spans Visualization
-            <FlameGraph />
-            <ServiceGraph />
-          </Item>
-        </Grid>
-        <Grid item xs={12}>
-          <Item>Evaluated Trace:
-
-            <TextField
-              id="outlined-multiline-static"
-              label="Multiline"
-              multiline
-              rows={4}
-              defaultValue="Default Value"
-            />
-          </Item>
-        </Grid>
-      </Grid>
+      <Formik<FormInputs>
+        initialValues={initialValues}
+        onSubmit={submit}
+        validate={validate}
+      >
+        <Form>
+          <FormContent />
+        </Form>
+      </Formik>
     </Box>
   );
+
+  function validate(values: FormInputs) {
+    const errors: FormikErrors<FormInputs> = {};
+
+    return {
+      ...errors
+    };
+  }
+
+  async function submit(values: FormInputs) {
+    return;
+  }
 }
 
 export default App;
