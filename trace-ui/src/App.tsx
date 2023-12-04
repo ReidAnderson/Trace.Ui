@@ -3,8 +3,9 @@ import { styled } from '@mui/material/styles';
 import { Box, Paper, Button, Checkbox, Divider, FormControlLabel, Grid, Stack, TextField } from '@mui/material';
 import { SpanCriteria, TraceRequirement } from './Interfaces';
 import { Formik, FormikErrors, Form, FieldArray, useFormikContext, Field } from 'formik';
-import { FlameGraph, ServiceGraph, sampleJaegerTrace } from './FlameGraph';
+import { FlameGraph, ServiceGraph } from './FlameGraph';
 import { v4 as uuidv4 } from "uuid";
+import { mapToJaegerTrace } from './telemetryDataMapper';
 
 type FormInputs = TraceRequirement;
 
@@ -119,7 +120,7 @@ function SpanList(props: SpanListProps) {
             return (
               <>
                 <Span span={criteria} name={props.name} index={index} />
-                <Button variant='contained' onClick={() => arrayHelpers.push(getEmptySpanCriteria(criteria.spanId))}>Add Child Span</Button>
+                <Button variant='contained' onClick={() => arrayHelpers.push(getEmptySpanCriteria(criteria.traceId, criteria.spanId))}>Add Child Span</Button>
                 <Button variant='contained' onClick={() => arrayHelpers.remove(index)}>Delete</Button>
               </>
             )
@@ -164,7 +165,8 @@ function FormContent() {
       </Grid>
       <Grid item xs={12}>
         <Item>Required Spans Visualization
-          <FlameGraph jaegerTrace={sampleJaegerTrace}/>
+          <FlameGraph jaegerTrace={mapToJaegerTrace(values.requiredSpans)}/>
+          {/* <FlameGraph jaegerTrace={sampleJaegerTrace}/> */}
           <ServiceGraph />
         </Item>
       </Grid>
