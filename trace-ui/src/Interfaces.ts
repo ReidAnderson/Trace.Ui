@@ -10,6 +10,7 @@ export interface Span {
 }
 
 export interface SpanCriteria {
+    traceId: string;
     spanId: string;
     parentSpanId?: string;
     serviceName?: string;

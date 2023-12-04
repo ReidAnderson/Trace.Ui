@@ -3,7 +3,7 @@ import { styled } from '@mui/material/styles';
 import { Box, Paper, Button, Checkbox, Divider, FormControlLabel, Grid, Stack, TextField } from '@mui/material';
 import { SpanCriteria, TraceRequirement } from './Interfaces';
 import { Formik, FormikErrors, Form, FieldArray, useFormikContext, Field } from 'formik';
-import { FlameGraph, ServiceGraph } from './FlameGraph';
+import { FlameGraph, ServiceGraph, sampleJaegerTrace } from './FlameGraph';
 import { v4 as uuidv4 } from "uuid";
 
 type FormInputs = TraceRequirement;
@@ -14,8 +14,9 @@ const initialValues: FormInputs = {
   disallowedSpans: []
 }
 
-function getEmptySpanCriteria(parentSpanId?: string): SpanCriteria {
+function getEmptySpanCriteria(traceId?: string, parentSpanId?: string): SpanCriteria {
   return {
+    traceId: traceId ?? uuidv4(),
     spanId: uuidv4(),
     parentSpanId: parentSpanId,
     useRegex: false,
@@ -163,7 +164,7 @@ function FormContent() {
       </Grid>
       <Grid item xs={12}>
         <Item>Required Spans Visualization
-          <FlameGraph />
+          <FlameGraph jaegerTrace={sampleJaegerTrace}/>
           <ServiceGraph />
         </Item>
       </Grid>
