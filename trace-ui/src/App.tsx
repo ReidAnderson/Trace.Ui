@@ -163,9 +163,33 @@ function FormContent() {
           <SpanList criteria={values.disallowedSpans} name="disallowedSpans" />
         </Item>
       </Grid>
+      <Grid item xs={6}>
+        <Item>Required Spans Trace:
+          <TextField
+            id="outlined-multiline-static"
+            label="Multiline"
+            multiline
+            rows={4}
+            value={JSON.stringify(values.requiredSpans)}
+            onChange={(e) => setFieldValue('requiredSpans', JSON.parse(e.target.value))}
+          />
+        </Item>
+      </Grid>
+      <Grid item xs={6}>
+        <Item>Disallowed Spans Trace:
+          <TextField
+            id="outlined-multiline-static"
+            label="Multiline"
+            multiline
+            rows={4}
+            value={JSON.stringify(values.disallowedSpans)}
+            onChange={(e) => setFieldValue('disallowedSpans', JSON.parse(e.target.value))}
+          />
+        </Item>
+      </Grid>
       <Grid item xs={12}>
         <Item>Required Spans Visualization
-          <FlameGraph jaegerTrace={mapToJaegerTrace(values.requiredSpans)}/>
+          <FlameGraph jaegerTrace={mapToJaegerTrace(values.requiredSpans)} />
           {/* <FlameGraph jaegerTrace={sampleJaegerTrace}/> */}
           <ServiceGraph />
         </Item>

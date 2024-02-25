@@ -29,14 +29,17 @@ describe('mapToJaegerTrace', () => {
   ];
 
   it('should return an empty object when no spans are provided', () => {
+    const result = mapToJaegerTrace([]);
+    expect(result.spans.length).toEqual(0);
+  });
+
+  it('should map object to result', () => {
     const result = mapToJaegerTrace(testData);
-    expect(result.length).toEqual(2);
-    result[0].traceId = testData[0].traceId;
-    result[0].spanId = testData[0].spanId;
-    result[0]['references'][0] = {
-      "refType": "CHILD_OF",
-      "traceId": testData[0].traceId,
-      "spanId": testData[0].parentSpanId
-    }
+    expect(result.spans.length).toEqual(2);
+    expect(result.spans[0].traceID).toEqual(testData[0].traceId);
+    expect(result.spans[0].spanID).toBe(testData[0].spanId);
+    expect(result.spans[1]['references'][0].spanID).toBe(testData[1].parentSpanId);
+    expect(result.spans[1]['references'][0].traceID).toBe(testData[1].traceId);
+    expect(result.spans[1]['references'][0].refType).toBe('CHILD_OF');
   });
 });

@@ -5,7 +5,7 @@ export function mapToJaegerTrace(spanCriteria: SpanCriteria[]) {
         traceID: spanCriteria.length > 0 ? spanCriteria[0].traceId : '',
         spans: []
     };
-    const timestamp: number = 1700528092274543;
+    const timestamp: number = Date.now()*1000;
 
     spanCriteria.forEach(span => {
         const jaeger_span:any = {};
@@ -14,7 +14,7 @@ export function mapToJaegerTrace(spanCriteria: SpanCriteria[]) {
         jaeger_span["spanID"] = span.spanId;
         jaeger_span["operationName"] = span.spanName;
         jaeger_span["startTime"] = timestamp;
-        jaeger_span["duration"] = Number(span.minDuration);
+        jaeger_span["duration"] = Number(span.minDuration)*1000;
 
         jaeger_span["references"] = [];
         if (span.parentSpanId != null) {
