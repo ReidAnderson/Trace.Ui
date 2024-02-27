@@ -1,5 +1,5 @@
 export interface Span {
-    id: string;
+    spanId: string;
     name: string;
     duration: number;
     parentSpanId?: string;
@@ -7,22 +7,22 @@ export interface Span {
     kind: string;
     timestamp: number;
     traceId: string;
+    startTime: number;
+    endTime: number;
+    status: string;
+    attributes: { [key: string]: string };
+    links: Link[];
+    events: { [key: string]: string };
 }
 
-export interface SpanCriteria {
+export interface Link {
     traceId: string;
     spanId: string;
-    parentSpanId?: string;
-    serviceName?: string;
-    spanName?: string;
-    parentServiceName?: string;
-    minDuration?: number;
-    maxDuration?: number;
-    useRegex: boolean;
+    attributes: { [key: string]: string };
 }
 
 export interface TraceRequirement {
-    spanFilter: SpanCriteria[];
-    requiredSpans: SpanCriteria[];
-    disallowedSpans: SpanCriteria[];
+    spanFilter: Span[];
+    requiredSpans: Span[];
+    disallowedSpans: Span[];
 }

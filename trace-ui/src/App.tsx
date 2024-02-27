@@ -1,26 +1,42 @@
 import './App.css';
 import { styled } from '@mui/material/styles';
 import { Box, Paper, Button, Checkbox, Divider, FormControlLabel, Grid, Stack, TextField } from '@mui/material';
-import { SpanCriteria, TraceRequirement } from './Interfaces';
+import { TraceRequirement, Span } from './Interfaces';
 import { Formik, FormikErrors, Form, FieldArray, useFormikContext, Field } from 'formik';
-import { FlameGraph, ServiceGraph } from './FlameGraph';
 import { v4 as uuidv4 } from "uuid";
-import { mapToJaegerTrace } from './telemetryDataMapper';
+import { FlameGraph, ServiceGraph, SpanTree } from './MermaidDefinitions';
+import { useEffect } from 'react';
+import mermaid from "mermaid";
 
-type FormInputs = TraceRequirement;
+type FormInputs = TraceRequirement & {
+  requiredSpansText: string;
+  disallowedSpansText: string;
+};
 
 const initialValues: FormInputs = {
   spanFilter: [],
   requiredSpans: [],
-  disallowedSpans: []
+  disallowedSpans: [],
+  requiredSpansText: '',
+  disallowedSpansText: ''
 }
 
-function getEmptySpanCriteria(traceId?: string, parentSpanId?: string): SpanCriteria {
+function getEmptySpan(traceId?: string, parentSpanId?: string): Span {
   return {
-    traceId: traceId ?? uuidv4(),
     spanId: uuidv4(),
+    name: '',
+    duration: 0,
     parentSpanId: parentSpanId,
-    useRegex: false,
+    serviceName: '',
+    kind: '',
+    timestamp: 0,
+    traceId: traceId ?? '',
+    startTime: 0,
+    endTime: 0,
+    status: '',
+    attributes: {},
+    links: [],
+    events: {}  
   }
 }
 
@@ -33,12 +49,12 @@ const Item = styled(Paper)(({ theme }) => ({
 }));
 
 export interface SpanProps {
-  span: SpanCriteria;
+  span: Span;
   name: string;
   index: number;
 }
 
-function Span(props: SpanProps) {
+function SpanDisplay(props: SpanProps) {
   const { setFieldValue, values, ...formik } = useFormikContext<FormInputs>();
 
   return (
@@ -50,7 +66,7 @@ function Span(props: SpanProps) {
         <TextField
           id="outlined-basic"
           label="Span Name"
-          value={props.span.spanName}
+          value={props.span.name}
           onChange={(e) => setFieldValue(`${props.name}.${props.index}.spanName`, e.target.value)}
           variant="outlined" />
         <TextField
@@ -64,7 +80,8 @@ function Span(props: SpanProps) {
         <TextField
           id="outlined-basic"
           label="Parent Service Name"
-          value={props.span.parentServiceName}
+          value={props.span.parentSpanId}
+          // TODO this is bad
           variant="outlined" />
         <Field
           name={`${props.name}.${props.index}.useRegex`}
@@ -75,7 +92,7 @@ function Span(props: SpanProps) {
           />)} />
 
       </Grid>
-      <Grid item xs={12}>
+      {/* <Grid item xs={12}>
         <TextField
           id="duration-min"
           label="Minimum Duration (ms)"
@@ -96,13 +113,13 @@ function Span(props: SpanProps) {
             shrink: true,
           }}
         />
-      </Grid>
+      </Grid> */}
     </Grid>
   );
 }
 
 export interface SpanListProps {
-  criteria: SpanCriteria[];
+  criteria: Span[];
   name: string;
 }
 
@@ -119,13 +136,13 @@ function SpanList(props: SpanListProps) {
           {props.criteria && props.criteria.length > 0 ? props.criteria.map((criteria, index) => {
             return (
               <>
-                <Span span={criteria} name={props.name} index={index} />
-                <Button variant='contained' onClick={() => arrayHelpers.push(getEmptySpanCriteria(criteria.traceId, criteria.spanId))}>Add Child Span</Button>
+                <SpanDisplay span={criteria} name={props.name} index={index} />
+                <Button variant='contained' onClick={() => arrayHelpers.push(getEmptySpan(criteria.traceId, criteria.spanId))}>Add Child Span</Button>
                 <Button variant='contained' onClick={() => arrayHelpers.remove(index)}>Delete</Button>
               </>
             )
           }) : (
-            <Button variant='contained' onClick={() => arrayHelpers.push(getEmptySpanCriteria())}>Add Span</Button>
+            <Button variant='contained' onClick={() => arrayHelpers.push(getEmptySpan())}>Add Span</Button>
           )}
         </Stack>)}
     </FieldArray>
@@ -133,13 +150,42 @@ function SpanList(props: SpanListProps) {
 }
 
 function FormContent() {
-  const { setFieldValue, values, ...formik } = useFormikContext<FormInputs>();
+  const { setFieldValue, values, errors, ...formik } = useFormikContext<FormInputs>();
 
-  console.log(JSON.stringify(values));
+  useEffect(() => {
+    // remove the data-processed html attribute from all elements with an id of mermaid
+    if (document.querySelectorAll('pre.mermaid').length > 0) {
+      document.querySelectorAll('pre.mermaid').forEach((element) => {
+        const test = 1;
+        if (!element.innerHTML.includes("svg") && element.hasAttribute('data-processed')) {
+          element.removeAttribute('data-processed');
+        }
+      });
+    }
+
+    mermaid.initialize({ startOnLoad: true });
+    mermaid.run();
+  }, [values.requiredSpans])
+
+  useEffect(() => {
+    
+  }, [values.requiredSpansText, values.disallowedSpansText])
+
+  function spanSet(field:string, fieldValue: string) {
+
+    let parsedJson = [] as Span[];
+
+    try {
+      parsedJson = JSON.parse(fieldValue);
+      setFieldValue(field, parsedJson);
+    } catch (e) {
+      errors.requiredSpans = "Invalid JSON";
+    }
+  }
 
   return (
     <Grid container spacing={2}>
-      <Grid item xs={4}>
+      <Grid item xs={4} hidden>
         <Item>Span Filter: Any trace containing a span that matches the following criteria will be evaluated
           <Stack
             direction="column"
@@ -153,16 +199,16 @@ function FormContent() {
           </Stack>
         </Item>
       </Grid>
-      <Grid item xs={4}>
+      {/* <Grid item xs={4} hidden>
         <Item>Required Spans: The trace must contain a match for all of the following spans
           <SpanList criteria={values.requiredSpans} name="requiredSpans" />
         </Item>
       </Grid>
-      <Grid item xs={4}>
+      <Grid item xs={4} hidden>
         <Item>Disallowed Spans: The trace cannot contain a match for any of the following spans
           <SpanList criteria={values.disallowedSpans} name="disallowedSpans" />
         </Item>
-      </Grid>
+      </Grid> */}
       <Grid item xs={6}>
         <Item>Required Spans Trace:
           <TextField
@@ -171,7 +217,7 @@ function FormContent() {
             multiline
             rows={4}
             value={JSON.stringify(values.requiredSpans)}
-            onChange={(e) => setFieldValue('requiredSpans', JSON.parse(e.target.value))}
+            onChange={(e) => spanSet('requiredSpans', e.target.value)}
           />
         </Item>
       </Grid>
@@ -189,9 +235,11 @@ function FormContent() {
       </Grid>
       <Grid item xs={12}>
         <Item>Required Spans Visualization
-          <FlameGraph jaegerTrace={mapToJaegerTrace(values.requiredSpans)} />
-          {/* <FlameGraph jaegerTrace={sampleJaegerTrace}/> */}
-          <ServiceGraph />
+          <FlameGraph trace={values.requiredSpans} />
+          <hr />
+          <SpanTree trace={values.requiredSpans} />
+          <hr />
+          <ServiceGraph trace={values.requiredSpans} />
         </Item>
       </Grid>
       <Grid item xs={12}>
