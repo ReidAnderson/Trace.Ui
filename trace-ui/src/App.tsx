@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 import { FlameGraph, ServiceGraph, SpanTree } from './MermaidDefinitions';
 import { useEffect, useState } from 'react';
 import mermaid from "mermaid";
+import { parse } from 'path';
 
 type FormInputs = TraceRequirement & {
   requiredSpansText: string;
@@ -67,8 +68,31 @@ export interface TraceEditorProps {
   setSpans: (spans: Span[]) => void;
 }
 
+function getServiceNameIfPresent(span: Span) {
+  return span.attributes['service.name'] ?? 'unknown service';
+}
+
 function TraceEditor(traceEditorProps: TraceEditorProps) {
+  const [selectedSpan, setSelectedSpan] = useState<Span | null>(null);
+  const [selectedSpanText, setSelectedSpanText] = useState('');
+
   const { inputSpans, setSpans } = traceEditorProps;
+
+  useEffect(() => {
+    let parsedJson = {} as Span;
+
+    try {
+      parsedJson = JSON.parse(selectedSpanText);
+      setSelectedSpan(parsedJson);
+
+      let newSpans = [...inputSpans];
+      newSpans[inputSpans.indexOf(selectedSpan!)] = parsedJson;
+      setSpans(newSpans);
+    } catch (e) {
+      console.error("Invalid JSON");
+    }
+  }, [selectedSpanText])
+
   return (
     <Grid container spacing={2}>
       <Grid item xs={12}>
@@ -81,25 +105,12 @@ function TraceEditor(traceEditorProps: TraceEditorProps) {
           }}>Add Span</Button>
         </Item>
       </Grid>
-      <Grid item xs={12}>
+      <Grid item xs={4}>
         <Item>
           {inputSpans.map((span, index) => {
             return (
               <Stack key={index} direction="row" spacing={2}>
-                <TextField
-                  id="outlined-multiline-static"
-                  label="Multiline"
-                  multiline
-                  rows={4}
-                  value={JSON.stringify(span, null, 2)}
-                  onChange={(e) => {
-                    let newSpans = [...inputSpans];
-                    newSpans[index] = JSON.parse(e.target.value);
-                    setSpans(newSpans);
-                  }}
-                  error={!isValidJson(JSON.stringify(span))}
-                  helperText={!isValidJson(JSON.stringify(span)) ? "Invalid JSON" : ""}
-                />
+                <Button variant="contained" onClick={() => { setSelectedSpan(span); setSelectedSpanText(JSON.stringify(span)); }}>{`${span.name} (${span.spanId}, ${getServiceNameIfPresent(span)})`}</Button>
                 <Button variant="contained" onClick={() => {
                   let newSpans = [...inputSpans];
                   newSpans.splice(index, 1);
@@ -108,6 +119,22 @@ function TraceEditor(traceEditorProps: TraceEditorProps) {
               </Stack>
             )
           })}
+        </Item>
+      </Grid>
+      <Grid item xs={8}>
+        <Item>
+          <TextField
+            id="outlined-multiline-static"
+            label="Multiline"
+            multiline
+            rows={4}
+            value={selectedSpanText}
+            onChange={(e) => {
+              setSelectedSpanText(e.target.value);
+            }}
+            error={!isValidJson(JSON.stringify(selectedSpan))}
+            helperText={!isValidJson(JSON.stringify(selectedSpan)) ? "Invalid JSON" : ""}
+          />
         </Item>
       </Grid>
     </Grid>
