@@ -1,11 +1,8 @@
 export interface Span {
     spanId: string;
     name: string;
-    duration: number;
     parentSpanId?: string;
-    serviceName: string;
     kind: string;
-    timestamp: number;
     traceId: string;
     startTime: number;
     endTime: number;

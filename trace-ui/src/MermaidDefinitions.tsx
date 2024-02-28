@@ -32,6 +32,7 @@ export function FlameGraph(props: TraceChartProps) {
     });
   });
 
+  console.log(flamegraphString);
   return (
     <Box className="Flamegraph-wrapper">
       <pre className="mermaid">{flamegraphString}</pre>
@@ -41,7 +42,7 @@ export function FlameGraph(props: TraceChartProps) {
 
 export function SpanTree(props: TraceChartProps) {
 
-  let spanTreeString = `---\ntitle: Span Tree\n---\ngraph TD\n`;
+  let spanTreeString = `---\ntitle: Span Graph\n---\ngraph TD\n`;
 
   // loop over each span and add a node for each if the parent span id is non null
   props.trace.forEach((span) => {
@@ -61,6 +62,7 @@ export function SpanTree(props: TraceChartProps) {
     }
   });
 
+  console.log(spanTreeString);
   return (
     <Box className="Spantree-wrapper">
       <pre className="mermaid">{spanTreeString}</pre>
@@ -82,8 +84,12 @@ export function ServiceGraph(props: TraceChartProps) {
   // loop over each span and if the connection between the parent and child span service names is not already in the connection list, add it
   props.trace.forEach((span) => {
     if (span.parentSpanId) {
-      const parentService = serviceMap[span.parentSpanId];
-      const childService = serviceMap[span.spanId];
+      const parentService = serviceMap[span.parentSpanId].replace(/\s/g, '');
+      const childService = serviceMap[span.spanId].replace(/\s/g, '');
+
+      if (parentService === childService) {
+        return;
+      }
 
       if (!connectionList.includes(`${parentService} --> ${childService}`)) {
         connectionList.push(`${parentService} --> ${childService}`);
@@ -95,8 +101,12 @@ export function ServiceGraph(props: TraceChartProps) {
   props.trace.forEach((span) => {
     if (span.links) {
       span.links.forEach((link) => {
-        const parentService = serviceMap[link.spanId];
-        const childService = serviceMap[span.spanId];
+        const parentService = serviceMap[link.spanId].replace(/\s/g, '');
+        const childService = serviceMap[span.spanId].replace(/\s/g, '');
+
+        if (parentService === childService) {
+          return;
+        }
 
         if (!connectionList.includes(`${parentService} --> ${childService}`)) {
           connectionList.push(`${parentService} -.-> ${childService}`);
@@ -109,7 +119,7 @@ export function ServiceGraph(props: TraceChartProps) {
   connectionList.forEach((connection) => {
     serviceGraphString += `  ${connection}\n`;
   });
-
+  console.log(serviceGraphString);
   return (
     <Box className="Servicegraph-wrapper">
       <pre className="mermaid">{serviceGraphString}</pre>

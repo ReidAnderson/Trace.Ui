@@ -7,11 +7,24 @@ import { FlameGraph, ServiceGraph, SpanTree } from './MermaidDefinitions';
 import { useEffect, useState } from 'react';
 import mermaid from "mermaid";
 import { parse } from 'path';
+import { getBackgroundSampleJson, getDaprSampleJson, getSimpleMicroserviceSampleJson } from './presetData';
 
 type FormInputs = TraceRequirement & {
   requiredSpansText: string;
   disallowedSpansText: string;
 };
+
+function generateSpanId(): string {
+  const array = new Uint8Array(8);
+  window.crypto.getRandomValues(array);
+  return Array.from(array).map(b => ('00' + b.toString(16)).slice(-2)).join('');
+}
+
+function generateTraceId(): string {
+  const array = new Uint8Array(16);
+  window.crypto.getRandomValues(array);
+  return Array.from(array).map(b => ('00' + b.toString(32)).slice(-2)).join('');
+}
 
 const initialValues: FormInputs = {
   spanFilter: [],
@@ -23,18 +36,17 @@ const initialValues: FormInputs = {
 
 function getEmptySpan(traceId?: string, parentSpanId?: string): Span {
   return {
-    spanId: uuidv4(),
-    name: '',
-    duration: 0,
+    spanId: generateSpanId(),
+    name: 'new span',
     parentSpanId: parentSpanId,
-    serviceName: '',
     kind: '',
-    timestamp: 0,
-    traceId: traceId ?? '',
+    traceId: traceId ?? generateTraceId(),
     startTime: 0,
     endTime: 0,
     status: '',
-    attributes: {},
+    attributes: {
+      'service.name': 'unknown'
+    },
     links: [],
     events: {}
   }
@@ -101,7 +113,7 @@ function TraceEditor(traceEditorProps: TraceEditorProps) {
       <Grid item xs={12}>
         <Item>
           <Button variant="contained" onClick={() => {
-            setSpans([...inputSpans, inputSpans[0]]);
+            setSpans([...inputSpans, getEmptySpan()]);
           }}>Add Span</Button>
         </Item>
       </Grid>
@@ -110,7 +122,7 @@ function TraceEditor(traceEditorProps: TraceEditorProps) {
           {inputSpans.map((span, index) => {
             return (
               <Stack key={index} direction="row" spacing={2}>
-                <Button variant="contained" onClick={() => { setSelectedSpan(span); setSelectedSpanText(JSON.stringify(span)); }}>{`${span.name} (${span.spanId}, ${getServiceNameIfPresent(span)})`}</Button>
+                <Button variant="contained" onClick={() => { setSelectedSpan(span); setSelectedSpanText(JSON.stringify(span, null, 2)); }}>{`${span.name} (${span.spanId}, ${getServiceNameIfPresent(span)})`}</Button>
                 <Button variant="contained" onClick={() => {
                   let newSpans = [...inputSpans];
                   newSpans.splice(index, 1);
@@ -122,20 +134,21 @@ function TraceEditor(traceEditorProps: TraceEditorProps) {
         </Item>
       </Grid>
       <Grid item xs={8}>
-        <Item>
-          <TextField
-            id="outlined-multiline-static"
-            label="Multiline"
-            multiline
-            rows={4}
-            value={selectedSpanText}
-            onChange={(e) => {
-              setSelectedSpanText(e.target.value);
-            }}
-            error={!isValidJson(JSON.stringify(selectedSpan))}
-            helperText={!isValidJson(JSON.stringify(selectedSpan)) ? "Invalid JSON" : ""}
-          />
-        </Item>
+          <Item>
+            <TextField
+              id="outlined-multiline-static"
+              label="Multiline"
+              multiline
+              rows={8}
+              value={selectedSpanText}
+              onChange={(e) => {
+                setSelectedSpanText(e.target.value);
+              }}
+              error={!isValidJson(JSON.stringify(selectedSpan))}
+              helperText={!isValidJson(JSON.stringify(selectedSpan)) ? "Invalid JSON" : ""}
+              fullWidth // Add this line to make the TextField take the entire grid space
+            />
+          </Item>
       </Grid>
     </Grid>
   )
@@ -162,6 +175,10 @@ function FormContent() {
   }, [spans])
 
   useEffect(() => {
+    if (requiredSpanText === JSON.stringify(spans, null, 2)) {
+      return;
+    }
+
     let parsedJson = [] as Span[];
 
     try {
@@ -174,17 +191,32 @@ function FormContent() {
 
   return (
     <Grid container spacing={2}>
+      <Grid item xs={12}>
+        <Item>
+        <Button variant="contained" onClick={() => {
+            setRequiredSpanText(getBackgroundSampleJson());
+          }}>Preset: Background Section</Button>  
+          <Button variant="contained" onClick={() => {
+            setRequiredSpanText(getDaprSampleJson());
+          }}>Preset: Dapr Sample</Button>          
+          <Button variant="contained" onClick={() => {
+            setRequiredSpanText(getSimpleMicroserviceSampleJson());
+          }}>Preset: Simple Microservice</Button>
+        </Item>
+      </Grid>
       <Grid item xs={6}>
         <Item>Required Spans Trace:
           <TextField
             id="outlined-multiline-static"
             label="Multiline"
             multiline
-            rows={4}
-            value={requiredSpanText}
-            onChange={(e) => setRequiredSpanText(e.target.value)}
-            error={!isValidJson(requiredSpanText)}
-            helperText={!isValidJson(requiredSpanText) ? "Invalid JSON" : ""}
+            rows={6}
+            disabled
+            value={JSON.stringify(spans, null, 2)}
+            // onChange={(e) => setRequiredSpanText(e.target.value)}
+            error={!isValidJson(JSON.stringify(spans, null, 2))}
+            helperText={!isValidJson(JSON.stringify(spans, null, 2)) ? "Invalid JSON" : ""}
+            fullWidth
           />
         </Item>
       </Grid>
@@ -194,11 +226,13 @@ function FormContent() {
             id="outlined-multiline-static"
             label="Multiline"
             multiline
-            rows={4}
+            rows={6}
+            disabled
             value={disallowedSpanText}
             onChange={(e) => setDisallowedSpanText(e.target.value)}
             error={!isValidJson(disallowedSpanText)}
             helperText={!isValidJson(disallowedSpanText) ? "Invalid JSON" : ""}
+            fullWidth
           />
         </Item>
       </Grid>
