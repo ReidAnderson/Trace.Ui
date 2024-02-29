@@ -21,5 +21,10 @@ export interface Link {
 export interface TraceRequirement {
     spanFilter: Span[];
     requiredSpans: Span[];
-    disallowedSpans: Span[];
+}
+
+export interface ComparisonResult {
+    resultSummary: string;
+    missingSpans: Span[];
+    disallowedSpans: { [key: string]: Span[] };
 }
