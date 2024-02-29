@@ -2,148 +2,205 @@
 export function getBackgroundSampleJson(): string {
   const data = [
     {
-      "spanId": "d8c82636d34ef2d5",
-      "parentSpanId": "a7088b42c8e60821",
-      "name": "Span E",
-      "kind": "",
-      "traceId": "6p551l673e6l7a0j207v3l0o4q6g3p2i",
-      "startTime": 1708928615085,
-      "endTime": 1708928615085,
-      "status": "",
-      "attributes": {
-        "service.name": "Service 3"
-      },
-      "links": [],
-      "events": {}
+        "attributes": {
+            "design.sourceDesignSpanId": "4d11d06576e74d20",
+            "design.sourceDesignTraceId": "43a5e3f20a9e47d691a26da248b595ee",
+            "service.name": "Service 1"
+        },
+        "endTime": "1708928616085",
+        "events": [
+        ],
+        "kind": "Client",
+        "links": [
+        ],
+        "name": "Span A",
+        "parentSpanId": "",
+        "spanId": "4d11d06576e74d20",
+        "startTime": "1708928615085",
+        "status": "Unspecified",
+        "traceId": "43a5e3f20a9e47d691a26da248b595ee",
+        "traceState": ""
     },
     {
-      "attributes": {
-        "design.sourceDesignSpanId": "4d11d06576e74d20",
-        "design.sourceDesignTraceId": "43a5e3f20a9e47d691a26da248b595ee",
-        "service.name": "Service 1"
-      },
-      "endTime": "1708928616085",
-      "events": [],
-      "kind": "Client",
-      "links": [],
-      "name": "Span A",
+        "attributes": {
+            "design.description": "The checkout service performs a submit-order action",
+            "design.sourceDesignSpanId": "0e70ab6c066c43c5",
+            "design.sourceDesignTraceId": "43a5e3f20a9e47d691a26da248b595ee",
+            "service.name": "Service 2"
+        },
+        "endTime": "1708928616000",
+        "events": [
+        ],
+        "kind": "Server",
+        "links": [
+        ],
+        "name": "Span B",
+        "parentSpanId": "4d11d06576e74d20",
+        "spanId": "0e70ab6c066c43c5",
+        "startTime": "1708928615385",
+        "status": "Unspecified",
+        "traceId": "43a5e3f20a9e47d691a26da248b595ee",
+        "traceState": ""
+    },
+    {
+        "attributes": {
+            "service.name": "Service 3"
+        },
+        "endTime": 1708928615985,
+        "events": {
+        },
+        "kind": "",
+        "links": [
+        ],
+        "name": "Span C",
+        "parentSpanId": "4d11d06576e74d20",
+        "spanId": "a7088b42c8e60821",
+        "startTime": 1708928615385,
+        "status": "",
+        "traceId": "43a5e3f20a9e47d691a26da248b595ee"
+    },
+    {
+        "attributes": {
+            "service.name": "Service 2"
+        },
+        "endTime": 1708928615799,
+        "events": {
+        },
+        "kind": "",
+        "links": [
+        ],
+        "name": "Span D",
+        "parentSpanId": "0e70ab6c066c43c5",
+        "spanId": "abfb39fe5864447c",
+        "startTime": 1708928615410,
+        "status": "",
+        "traceId": "43a5e3f20a9e47d691a26da248b595ee"
+    },
+    {
+        "attributes": {
+            "service.name": "Service 3"
+        },
+        "endTime": 1708928615685,
+        "events": {
+        },
+        "kind": "",
+        "links": [
+        ],
+        "name": "Span E",
+        "parentSpanId": "a7088b42c8e60821",
+        "spanId": "d8c82636d34ef2d5",
+        "startTime": 1708928615585,
+        "status": "",
+        "traceId": "43a5e3f20a9e47d691a26da248b595ee"
+    },
+    {
+        "attributes": {
+            "service.name": "Service 3"
+        },
+        "endTime": 1708928615825,
+        "events": {
+        },
+        "kind": "",
+        "links": [
+        ],
+        "name": "Span F",
+        "parentSpanId": "a7088b42c8e60821",
+        "spanId": "5178b5a72a2e3d25",
+        "startTime": 1708928615730,
+        "status": "",
+        "traceId": "43a5e3f20a9e47d691a26da248b595ee"
+    },
+    {
+        "attributes": {
+            "design.description": "The order consumer consumes the submitted order",
+            "design.sourceDesignSpanId": "a9501a002b9a4913",
+            "design.sourceDesignTraceId": "43a5e3f20a9e47d691a26da248b595ee",
+            "service.name": "Service 4"
+        },
+        "endTime": "1708928616435",
+        "events": [
+        ],
+        "kind": "Consumer",
+        "links": [
+            {
+                "attributes": {
+                },
+                "spanId": "a7088b42c8e60821",
+                "traceId": "43a5e3f20a9e47d691a26da248b595ee",
+                "traceState": ""
+            }
+        ],
+        "name": "Span G",
+        "parentSpanId": "",
+        "spanId": "a9501a002b9a4913",
+        "startTime": "1708928615990",
+        "status": "Unspecified",
+        "traceId": "43a5e3f20a9e47d691a26da248b595ee",
+        "traceState": ""
+    },
+    {
+        "attributes": {
+            "design.description": "The submitted order is saved to the database",
+            "design.sourceDesignSpanId": "ee708d1415074c2b",
+            "design.sourceDesignTraceId": "43a5e3f20a9e47d691a26da248b595ee",
+            "service.name": "Service 4"
+        },
+        "endTime": "1708928616585",
+        "events": [
+        ],
+        "kind": "Server",
+        "links": [
+        ],
+        "name": "Span H",
+        "parentSpanId": "a9501a002b9a4913",
+        "spanId": "ee708d1415074c2b",
+        "startTime": "1708928616185",
+        "status": "Unspecified",
+        "traceId": "43a5e3f20a9e47d691a26da248b595ee",
+        "traceState": ""
+    },
+    {
+      "traceId": "54ccebe5e436473ab96bb5a745a61498",
+      "spanId": "16aa1e3feb12496c",
+      "traceState": "",
       "parentSpanId": "",
-      "spanId": "4d11d06576e74d20",
-      "startTime": "1708928615085",
-      "status": "Unspecified",
-      "traceId": "43a5e3f20a9e47d691a26da248b595ee",
-      "traceState": ""
-    },
-    {
-      "attributes": {
-        "design.description": "The checkout service performs a submit-order action",
-        "design.sourceDesignSpanId": "0e70ab6c066c43c5",
-        "design.sourceDesignTraceId": "43a5e3f20a9e47d691a26da248b595ee",
-        "service.name": "Service 2"
-      },
-      "endTime": "1708928616000",
-      "events": [],
+      "name": "aspnet_core_mvc.request",
       "kind": "Server",
-      "links": [],
-      "name": "Span B",
-      "parentSpanId": "4d11d06576e74d20",
-      "spanId": "0e70ab6c066c43c5",
-      "startTime": "1708928615385",
-      "status": "Unspecified",
-      "traceId": "43a5e3f20a9e47d691a26da248b595ee",
-      "traceState": ""
-    },
-    {
-      "spanId": "abfb39fe5864447c",
-      "parentSpanId": "0e70ab6c066c43c5",
-      "name": "Span D",
-      "kind": "",
-      "traceId": "795i055q7s1i7s026q765j181m3a0m2q",
-      "startTime": 1708928616085,
-      "endTime": 1708928616085,
-      "status": "",
+      "startTime": "1709186554186",
+      "endTime": "1709186554286",
       "attributes": {
-        "service.name": "Service 2"
+          "service.name": "gateway.api","criteria.description": "The gateway receives the request from the client."
       },
-      "links": [],
-      "events": {}
-    },
-    {
-      "attributes": {
-        "design.description": "The order consumer consumes the submitted order",
-        "design.sourceDesignSpanId": "a9501a002b9a4913",
-        "design.sourceDesignTraceId": "43a5e3f20a9e47d691a26da248b595ee",
-        "service.name": "Service 4"
-      },
-      "endTime": "1708928616835",
-      "events": [],
-      "kind": "Consumer",
-      "links": [
-        {
-          "attributes": {},
-          "spanId": "a7088b42c8e60821",
-          "traceId": "43a5e3f20a9e47d691a26da248b595ee",
-          "traceState": ""
-        }
+      "events": [
+          
       ],
-      "name": "Span G",
-      "parentSpanId": "",
-      "spanId": "a9501a002b9a4913",
-      "startTime": "1708928616085",
-      "status": "Unspecified",
-      "traceId": "43a5e3f20a9e47d691a26da248b595ee",
-      "traceState": ""
-    },
-    {
-      "attributes": {
-        "design.description": "The submitted order is saved to the database",
-        "design.sourceDesignSpanId": "ee708d1415074c2b",
-        "design.sourceDesignTraceId": "43a5e3f20a9e47d691a26da248b595ee",
-        "service.name": "Service 4"
-      },
-      "endTime": "1708928616585",
-      "events": [],
+      "links": [
+          
+      ],
+      "status": "Unspecified"
+  } 
+,
+  {
+      "traceId": "54ccebe5e436473ab96bb5a745a61498",
+      "spanId": "4f383aed87804a50",
+      "traceState": "",
+      "parentSpanId": "16aa1e3feb12496c",
+      "name": "sql_server.query",
       "kind": "Server",
-      "links": [],
-      "name": "Span H",
-      "parentSpanId": "a9501a002b9a4913",
-      "spanId": "ee708d1415074c2b",
-      "startTime": "1708928616185",
-      "status": "Unspecified",
-      "traceId": "43a5e3f20a9e47d691a26da248b595ee",
-      "traceState": ""
-    },
-    {
-      "spanId": "5178b5a72a2e3d25",
-      "parentSpanId": "a7088b42c8e60821",
-      "name": "Span F",
-      "kind": "",
-      "traceId": "0c4l6d1d7n0g39252j7p3s1k104b5r5s",
-      "startTime": 1708928616585,
-      "endTime": 1708928616585,
-      "status": "",
+      "startTime": "1709186554186",
+      "endTime": "1709186554196",
       "attributes": {
-        "service.name": "Service 3"
+          "service.name": "gateway.api-sql-server","criteria.description": "Do not allow a call from the gateway to the database.","criteria.allowNonImmediateParent": "false"
       },
-      "links": [],
-      "events": {}
-    },
-    {
-      "spanId": "a7088b42c8e60821",
-      "name": "Span C",
-      "kind": "",
-      "traceId": "1v1m1m483d2h1c177i7t3k300k0c0p6v",
-      "parentSpanId": "4d11d06576e74d20",
-      "startTime": 1708928616835,
-      "endTime": 1708928616835,
-      "status": "",
-      "attributes": {
-        "service.name": "Service 3"
-      },
-      "links": [],
-      "events": {}
-    }
-  ];
+      "events": [
+          
+      ],
+      "links": [
+          
+      ],
+      "status": "Unspecified"
+  } 
+];
 
   return JSON.stringify(data);
 }

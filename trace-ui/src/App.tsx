@@ -76,8 +76,13 @@ function isValidJson(json: string): boolean {
 }
 
 export interface TraceEditorProps {
+  traces: string[];
+  selectedTrace: string;
+  setSelectedTrace: (trace: string) => void;
   inputSpans: Span[];
   setSpans: (spans: Span[]) => void;
+  disallowedSpans: Span[];
+  setDisallowedSpans: (spans: Span[]) => void;
 }
 
 function getServiceNameIfPresent(span: Span) {
@@ -87,19 +92,29 @@ function getServiceNameIfPresent(span: Span) {
 function TraceEditor(traceEditorProps: TraceEditorProps) {
   const [selectedSpan, setSelectedSpan] = useState<Span | null>(null);
   const [selectedSpanText, setSelectedSpanText] = useState('');
+  const [isDisallowed, setIsDisallowed] = useState(false);
 
-  const { inputSpans, setSpans } = traceEditorProps;
+  const { inputSpans, setSpans, disallowedSpans, setDisallowedSpans, traces, selectedTrace, setSelectedTrace } = traceEditorProps;
 
   useEffect(() => {
     let parsedJson = {} as Span;
 
     try {
-      parsedJson = JSON.parse(selectedSpanText);
-      setSelectedSpan(parsedJson);
+      if (!isDisallowed) {
+        parsedJson = JSON.parse(selectedSpanText);
+        setSelectedSpan(parsedJson);
 
-      let newSpans = [...inputSpans];
-      newSpans[inputSpans.indexOf(selectedSpan!)] = parsedJson;
-      setSpans(newSpans);
+        let newSpans = [...inputSpans];
+        newSpans[inputSpans.indexOf(selectedSpan!)] = parsedJson;
+        setSpans(newSpans);
+      } else {
+        parsedJson = JSON.parse(selectedSpanText);
+        setSelectedSpan(parsedJson);
+
+        let newSpans = [...disallowedSpans];
+        newSpans[disallowedSpans.indexOf(selectedSpan!)] = parsedJson;
+        setDisallowedSpans(newSpans);
+      }
     } catch (e) {
       console.error("Invalid JSON");
     }
@@ -109,7 +124,15 @@ function TraceEditor(traceEditorProps: TraceEditorProps) {
     <Grid container spacing={2}>
       <Grid item xs={12}>
         <Item>Trace Editor</Item>
+        <Item>{traces.map((trace, index) => {
+          return (
+            <Button key={index} variant="contained" onClick={() => {
+              setSelectedTrace(trace);
+            }}>{trace}</Button>
+          )
+        })}</Item>
       </Grid>
+
       <Grid item xs={12}>
         <Item>
           <Button variant="contained" onClick={() => {
@@ -119,10 +142,24 @@ function TraceEditor(traceEditorProps: TraceEditorProps) {
       </Grid>
       <Grid item xs={4}>
         <Item>
-          {inputSpans.map((span, index) => {
+          {inputSpans.filter(span => span.traceId === selectedTrace).map((span, index) => {
             return (
               <Stack key={index} direction="row" spacing={2}>
-                <Button variant="contained" onClick={() => { setSelectedSpan(span); setSelectedSpanText(JSON.stringify(span, null, 2)); }}>{`${span.name} (${span.spanId}, ${getServiceNameIfPresent(span)})`}</Button>
+                <Button variant="contained" onClick={() => { setIsDisallowed(false); setSelectedSpan(span); setSelectedSpanText(JSON.stringify(span, null, 2)); }}>{`${span.name} (${span.spanId}, ${getServiceNameIfPresent(span)})`}</Button>
+                <Button variant="contained" onClick={() => {
+                  let newSpans = [...inputSpans];
+                  newSpans.splice(index, 1);
+                  setSpans(newSpans);
+                }}>Remove</Button>
+              </Stack>
+            )
+          })}
+        </Item>
+        <Item>
+          {disallowedSpans.filter(span => span.traceId === selectedTrace).map((span, index) => {
+            return (
+              <Stack key={index} direction="row" spacing={2}>
+                <Button variant="contained" onClick={() => { setIsDisallowed(false); setSelectedSpan(span); setSelectedSpanText(JSON.stringify(span, null, 2)); }}>{`${span.name} (${span.spanId}, ${getServiceNameIfPresent(span)})`}</Button>
                 <Button variant="contained" onClick={() => {
                   let newSpans = [...inputSpans];
                   newSpans.splice(index, 1);
@@ -134,28 +171,31 @@ function TraceEditor(traceEditorProps: TraceEditorProps) {
         </Item>
       </Grid>
       <Grid item xs={8}>
-          <Item>
-            <TextField
-              id="outlined-multiline-static"
-              label="Multiline"
-              multiline
-              rows={8}
-              value={selectedSpanText}
-              onChange={(e) => {
-                setSelectedSpanText(e.target.value);
-              }}
-              error={!isValidJson(JSON.stringify(selectedSpan))}
-              helperText={!isValidJson(JSON.stringify(selectedSpan)) ? "Invalid JSON" : ""}
-              fullWidth // Add this line to make the TextField take the entire grid space
-            />
-          </Item>
+        <Item>
+          <TextField
+            id="outlined-multiline-static"
+            label="Multiline"
+            multiline
+            rows={8}
+            value={selectedSpanText}
+            onChange={(e) => {
+              setSelectedSpanText(e.target.value);
+            }}
+            error={!isValidJson(JSON.stringify(selectedSpan))}
+            helperText={!isValidJson(JSON.stringify(selectedSpan)) ? "Invalid JSON" : ""}
+            fullWidth // Add this line to make the TextField take the entire grid space
+          />
+        </Item>
       </Grid>
     </Grid>
   )
 }
 
 function FormContent() {
+  const [traces, setTraces] = useState<string[]>([]);
+  const [selectedTrace, setSelectedTrace] = useState<string>('');
   const [spans, setSpans] = useState<Span[]>([]);
+  const [disallowedSpans, setDisallowedSpans] = useState<Span[]>([]);
   const [requiredSpanText, setRequiredSpanText] = useState('');
   const [disallowedSpanText, setDisallowedSpanText] = useState('');
 
@@ -172,7 +212,13 @@ function FormContent() {
 
     mermaid.initialize({ startOnLoad: true });
     mermaid.run();
-  }, [spans])
+
+    // retrieve all unique trace ids from both spans and disallowedSpans and set them in the traces state
+    const traceIds = new Set<string>();
+    spans.forEach((span) => traceIds.add(span.traceId));
+    disallowedSpans.forEach((span) => traceIds.add(span.traceId));
+    setTraces(Array.from(traceIds));
+  }, [spans, disallowedSpans, selectedTrace])
 
   useEffect(() => {
     if (requiredSpanText === JSON.stringify(spans, null, 2)) {
@@ -189,16 +235,31 @@ function FormContent() {
     }
   }, [requiredSpanText])
 
+  useEffect(() => {
+    if (disallowedSpanText === JSON.stringify(disallowedSpans, null, 2)) {
+      return;
+    }
+
+    let parsedJson = [] as Span[];
+
+    try {
+      parsedJson = JSON.parse(disallowedSpanText);
+      setDisallowedSpans(parsedJson);
+    } catch (e) {
+      console.error("Invalid JSON");
+    }
+  }, [disallowedSpanText])
+
   return (
     <Grid container spacing={2}>
       <Grid item xs={12}>
         <Item>
-        <Button variant="contained" onClick={() => {
+          <Button variant="contained" onClick={() => {
             setRequiredSpanText(getBackgroundSampleJson());
-          }}>Preset: Background Section</Button>  
+          }}>Preset: Background Section</Button>
           <Button variant="contained" onClick={() => {
             setRequiredSpanText(getDaprSampleJson());
-          }}>Preset: Dapr Sample</Button>          
+          }}>Preset: Dapr Sample</Button>
           <Button variant="contained" onClick={() => {
             setRequiredSpanText(getSimpleMicroserviceSampleJson());
           }}>Preset: Simple Microservice</Button>
@@ -237,25 +298,24 @@ function FormContent() {
         </Item>
       </Grid>
       <Grid item xs={12}>
-        <TraceEditor inputSpans={spans} setSpans={setSpans} />
+        <TraceEditor selectedTrace={selectedTrace} setSelectedTrace={setSelectedTrace} traces={traces} inputSpans={spans} setSpans={setSpans} disallowedSpans={disallowedSpans} setDisallowedSpans={setDisallowedSpans} />
       </Grid>
       <Grid item xs={12}>
         <Item>Required Spans Visualization
-          <FlameGraph trace={spans} />
+            <FlameGraph trace={spans.filter(span => span.traceId === selectedTrace)} />
           <hr />
-          <SpanTree trace={spans} />
+          <SpanTree trace={spans.filter(span => span.traceId === selectedTrace)} />
           <hr />
-          <ServiceGraph trace={spans} />
+          <ServiceGraph trace={spans.filter(span => span.traceId === selectedTrace)} />
         </Item>
       </Grid>
       <Grid item xs={12}>
         <Item>Evaluated Trace:
-
           <TextField
             id="outlined-multiline-static"
             label="Multiline"
             multiline
-            rows={4}
+            rows={8}
             defaultValue="Default Value"
           />
         </Item>
