@@ -145,7 +145,7 @@ export function getBackgroundSampleJson(): string {
         "design.sourceDesignTraceId": "43a5e3f20a9e47d691a26da248b595ee",
         "service.name": "Service 4"
       },
-      "endTime": "1708928616585",
+      "endTime": "1708928616325",
       "events": [
       ],
       "kind": "Server",
