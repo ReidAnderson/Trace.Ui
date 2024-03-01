@@ -26,5 +26,7 @@ export interface TraceRequirement {
 export interface ComparisonResult {
     resultSummary: string;
     missingSpans: Span[];
+    missingSpanIds: string[];
     disallowedSpans: { [key: string]: Span[] };
+    disallowedSpanIds: string[];
 }

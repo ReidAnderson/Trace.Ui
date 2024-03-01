@@ -83,7 +83,9 @@ export function compare(observedTrace: Span[], requiredSpans: Span[], disallowed
   let result: ComparisonResult = {
     resultSummary: "",
     missingSpans: [],
-    disallowedSpans: {}
+    missingSpanIds: [],
+    disallowedSpans: {},
+    disallowedSpanIds: []
   };
 
   // TODO: we can do better than multiple foreach loops
@@ -110,15 +112,18 @@ export function compare(observedTrace: Span[], requiredSpans: Span[], disallowed
     for (let disallowedSpan of disallowedSpans) {
       if (span.name === disallowedSpan.name) {
         if (evaluateSpanEquality(span, disallowedSpan) && evaluateParentSpanCompliance(span, disallowedSpan, observedTrace, disallowedSpans)) {
-          if (!result.disallowedSpans.hasOwnProperty(disallowedSpan.spanId)) {
-            result.disallowedSpans[disallowedSpan.spanId] = [];
+          if (!result.disallowedSpans.hasOwnProperty(span.spanId)) {
+            result.disallowedSpans[span.spanId] = [];
           }
 
-          result.disallowedSpans[disallowedSpan.spanId].push(span);
+          result.disallowedSpans[span.spanId].push(span);
         }
       }
     }
   }
+
+  result.missingSpanIds = result.missingSpans.map(span => span.spanId);
+  result.disallowedSpanIds = Object.keys(result.disallowedSpans);
 
   return result;
 }

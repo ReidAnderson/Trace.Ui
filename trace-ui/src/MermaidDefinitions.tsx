@@ -3,6 +3,7 @@ import { Span } from './Interfaces';
 
 export interface TraceChartProps {
   trace: Span[];
+  disallowedSpanIds?: string[];
 }
 
 export function FlameGraph(props: TraceChartProps) {
@@ -61,6 +62,12 @@ export function SpanTree(props: TraceChartProps) {
       });
     }
   });
+
+  if (props.disallowedSpanIds) {
+    props.disallowedSpanIds.forEach((spanId) => {
+      spanTreeString += `  style ${spanId} fill:#f00\n`;
+    });
+  }
 
   console.log(spanTreeString);
   return (

@@ -1,13 +1,14 @@
 import './App.css';
 import { styled } from '@mui/material/styles';
 import { Box, Paper, Button, Checkbox, Divider, FormControlLabel, Grid, Stack, TextField } from '@mui/material';
-import { TraceRequirement, Span } from './Interfaces';
+import { TraceRequirement, Span, ComparisonResult } from './Interfaces';
 import { v4 as uuidv4 } from "uuid";
 import { FlameGraph, ServiceGraph, SpanTree } from './MermaidDefinitions';
 import { useEffect, useState } from 'react';
 import mermaid from "mermaid";
 import { parse } from 'path';
 import { getBackgroundSampleJson, getDaprSampleJson, getSimpleMicroserviceSampleJson } from './presetData';
+import { compare } from './traceCompare';
 
 type FormInputs = TraceRequirement & {
   requiredSpansText: string;
@@ -167,8 +168,16 @@ function FormContent() {
   const [selectedTrace, setSelectedTrace] = useState<string>('');
   const [spans, setSpans] = useState<Span[]>([]);
   const [requiredSpanText, setRequiredSpanText] = useState('');
+  
+  const [observedSpanText, setObservedSpanText] = useState('');
+  const [observedSpans, setObservedSpans] = useState<Span[]>([]);
+
+  // compare(observedSpans, spans.filter(span => span.attributes["criteria.isDisallowed"] !== "true"), spans.filter(span => span.attributes["criteria.isDisallowed"] === "true")))
+  const [comparisonResult, setComparisonResult] = useState<ComparisonResult | null>(null);
 
   useEffect(() => {
+    setComparisonResult(compare(observedSpans, spans.filter(span => span.attributes["criteria.isDisallowed"] !== "true"), spans.filter(span => span.attributes["criteria.isDisallowed"] === "true")));
+
     // remove the data-processed html attribute from all elements with an id of mermaid
     if (document.querySelectorAll('pre.mermaid').length > 0) {
       document.querySelectorAll('pre.mermaid').forEach((element) => {
@@ -186,7 +195,7 @@ function FormContent() {
     const traceIds = new Set<string>();
     spans.forEach((span) => traceIds.add(span.traceId));
     setTraces(Array.from(traceIds));
-  }, [spans, selectedTrace])
+  }, [spans, selectedTrace, observedSpans])
 
   useEffect(() => {
     if (requiredSpanText === JSON.stringify(spans, null, 2)) {
@@ -202,6 +211,21 @@ function FormContent() {
       console.error("Invalid JSON");
     }
   }, [requiredSpanText])
+
+  useEffect(() => {
+    if (observedSpanText === JSON.stringify(observedSpans, null, 2)) {
+      return;
+    }
+
+    let parsedJson = [] as Span[];
+
+    try {
+      parsedJson = JSON.parse(observedSpanText);
+      setObservedSpans(parsedJson);
+    } catch (e) {
+      console.error("Invalid JSON");
+    }
+  }, [observedSpanText])
 
   return (
     <Grid container spacing={2}>
@@ -252,14 +276,18 @@ function FormContent() {
             id="outlined-multiline-static"
             label="Multiline"
             multiline
-            rows={8}
-            defaultValue="Default Value"
+            rows={6}
+            value={observedSpanText}
+            onChange={(e) => setObservedSpanText(e.target.value)}
+            error={!isValidJson(observedSpanText)}
+            helperText={!isValidJson(observedSpanText) ? "Invalid JSON" : ""}
+            fullWidth
           />
         </Item>
       </Grid>
       <Grid item xs={12}>
-        <Item>Result:
-        </Item>
+        {JSON.stringify(comparisonResult)}
+        <SpanTree trace={observedSpans} disallowedSpanIds={comparisonResult?.disallowedSpanIds} />
       </Grid>
     </Grid>
   )
