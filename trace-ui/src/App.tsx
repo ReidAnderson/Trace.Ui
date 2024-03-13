@@ -10,15 +10,8 @@ import { parse } from 'path';
 import { compare } from './traceCompare';
 import { Presets } from './Presets';
 import { TraceEditor } from './TraceEditor';
-import { isValidJson } from './helper';
-
-const Item = styled(Paper)(({ theme }) => ({
-  backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
-  ...theme.typography.body2,
-  padding: theme.spacing(1),
-  textAlign: 'center',
-  color: theme.palette.text.secondary,
-}));
+import { Item, isValidJson } from './helper';
+import { ObservedTrace } from './ObservedTrace';
 
 export interface SpanProps {
   span: Span;
@@ -31,35 +24,25 @@ function FormContent() {
   const [selectedTrace, setSelectedTrace] = useState<string>('');
   const [spans, setSpans] = useState<Span[]>([]);
   const [requiredSpanText, setRequiredSpanText] = useState('');
-  
-  const [observedSpanText, setObservedSpanText] = useState('');
-  const [observedSpans, setObservedSpans] = useState<Span[]>([]);
-
-  // compare(observedSpans, spans.filter(span => span.attributes["criteria.isDisallowed"] !== "true"), spans.filter(span => span.attributes["criteria.isDisallowed"] === "true")))
-  const [comparisonResult, setComparisonResult] = useState<ComparisonResult | null>(null);
 
   useEffect(() => {
-    console.log("Spans: ", JSON.stringify(spans, null, 2));
-    setComparisonResult(compare(observedSpans, spans.filter(span => span.attributes["criteria.isDisallowed"] !== "true"), spans.filter(span => span.attributes["criteria.isDisallowed"] === "true")));
-
-    // remove the data-processed html attribute from all elements with an id of mermaid
-    if (document.querySelectorAll('pre.mermaid').length > 0) {
-      document.querySelectorAll('pre.mermaid').forEach((element) => {
-        const test = 1;
-        if (!element.innerHTML.includes("svg") && element.hasAttribute('data-processed')) {
-          element.removeAttribute('data-processed');
-        }
-      });
-    }
-
-    mermaid.initialize({ startOnLoad: true });
-    mermaid.run();
+      // remove the data-processed html attribute from all elements with an id of mermaid
+      if (document.querySelectorAll('pre.mermaid').length > 0) {
+        document.querySelectorAll('pre.mermaid').forEach((element) => {
+          if (!element.innerHTML.includes("svg") && element.hasAttribute('data-processed')) {
+            element.removeAttribute('data-processed');
+          }
+        });
+      }
+  
+      mermaid.initialize({ startOnLoad: true });
+      mermaid.run();  
 
     // retrieve all unique trace ids and set them in the traces state
     const traceIds = new Set<string>();
     spans.forEach((span) => traceIds.add(span.traceId));
     setTraces(Array.from(traceIds));
-  }, [spans, selectedTrace, observedSpans])
+  }, [spans, selectedTrace]);
 
   useEffect(() => {
     if (requiredSpanText === JSON.stringify(spans, null, 2)) {
@@ -74,22 +57,7 @@ function FormContent() {
     } catch (e) {
       console.error("Invalid JSON");
     }
-  }, [requiredSpanText])
-
-  useEffect(() => {
-    if (observedSpanText === JSON.stringify(observedSpans, null, 2)) {
-      return;
-    }
-
-    let parsedJson = [] as Span[];
-
-    try {
-      parsedJson = JSON.parse(observedSpanText);
-      setObservedSpans(parsedJson);
-    } catch (e) {
-      console.error("Invalid JSON");
-    }
-  }, [observedSpanText])
+  }, [requiredSpanText]);
 
   return (
     <Grid container spacing={2}>
@@ -124,25 +92,7 @@ function FormContent() {
           <ServiceGraph trace={spans.filter(span => span.traceId === selectedTrace)} />
         </Item>
       </Grid>
-      <Grid item xs={12}>
-        <Item>Evaluated Trace:
-          <TextField
-            id="outlined-multiline-static"
-            label="Multiline"
-            multiline
-            rows={6}
-            value={observedSpanText}
-            onChange={(e) => setObservedSpanText(e.target.value)}
-            error={!isValidJson(observedSpanText)}
-            helperText={!isValidJson(observedSpanText) ? "Invalid JSON" : ""}
-            fullWidth
-          />
-        </Item>
-      </Grid>
-      <Grid item xs={12}>
-        {JSON.stringify(comparisonResult)}
-        <SpanTree trace={observedSpans} disallowedSpanIds={[...(comparisonResult?.disallowedSpanIds || []), ...(comparisonResult?.missingSpanIds || [])]} matchedSpanIds={comparisonResult?.matchedSpanIds} />
-      </Grid>
+      <ObservedTrace criteriaSpans={spans}/>
     </Grid>
   )
 }
