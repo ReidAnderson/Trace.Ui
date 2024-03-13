@@ -164,6 +164,168 @@ export function getBackgroundSampleJson(): string {
   return JSON.stringify(data);
 }
 
+export function getEventDrivenSampleJson(): string {
+  const data = [
+    {
+      "attributes": {
+        "service.name": "Gateway"
+      },
+      "endTime": 1708928615985,
+      "events": {},
+      "kind": "",
+      "links": [],
+      "name": "Span A",
+      "parentSpanId": "",
+      "spanId": "a7088b42c8e60821",
+      "startTime": 1708928615385,
+      "status": "",
+      "traceId": "43a5e3f20a9e47d691a26da248b595ee"
+    },
+    {
+      "attributes": {
+        "service.name": "Consumer1"
+      },
+      "endTime": 1708928615685,
+      "events": {},
+      "kind": "",
+      "links": [
+        {
+          "attributes": {},
+          "spanId": "a7088b42c8e60821",
+          "traceId": "43a5e3f20a9e47d691a26da248b595ee",
+          "traceState": ""
+        }
+      ],
+      "name": "Span B",
+      "parentSpanId": "",
+      "spanId": "d8c82636d34ef2d5",
+      "startTime": 1708928615585,
+      "status": "",
+      "traceId": "43a5e3f20a9e47d691a26da248b595ee"
+    },
+    {
+      "attributes": {
+        "design.description": "The order consumer consumes the submitted order",
+        "design.sourceDesignSpanId": "a9501a002b9a4913",
+        "design.sourceDesignTraceId": "43a5e3f20a9e47d691a26da248b595ee",
+        "service.name": "Consumer2"
+      },
+      "endTime": "1708928616435",
+      "events": [],
+      "kind": "Consumer",
+      "links": [
+        {
+          "attributes": {},
+          "spanId": "a7088b42c8e60821",
+          "traceId": "43a5e3f20a9e47d691a26da248b595ee",
+          "traceState": ""
+        }
+      ],
+      "name": "Span C",
+      "parentSpanId": "",
+      "spanId": "a9501a002b9a4913",
+      "startTime": "1708928615990",
+      "status": "Unspecified",
+      "traceId": "43a5e3f20a9e47d691a26da248b595ee",
+      "traceState": ""
+    },
+    {
+      "spanId": "5fb67135e1ed2651",
+      "name": "Span D",
+      "kind": "",
+      "traceId": "43a5e3f20a9e47d691a26da248b595ee",
+      "startTime": 1708928616435,
+      "endTime": 1708928616435,
+      "status": "",
+      "parentSpanId": "a9501a002b9a4913",
+      "attributes": {
+        "service.name": "Consumer2"
+      },
+      "links": [],
+      "events": {}
+    },
+    {
+      "spanId": "d9a7e2efeca8dcca",
+      "parentSpanId": "d8c82636d34ef2d5",
+      "name": "Span E",
+      "kind": "",
+      "traceId": "43a5e3f20a9e47d691a26da248b595ee",
+      "startTime": 1708928616435,
+      "endTime": 1708928616435,
+      "status": "",
+      "attributes": {
+        "service.name": "Consumer1"
+      },
+      "links": [],
+      "events": {}
+    },
+    {
+      "spanId": "b2de88b8bb242b2b",
+      "name": "Span B",
+      "kind": "",
+      "traceId": "7k0t3a1u396m3r0r735u010u766p0g16",
+      "startTime": 1708928615685,
+      "endTime": 1708928615685,
+      "status": "",
+      "attributes": {
+        "service.name": "Consumer1",
+        "criteria.isDisallowed": "true"
+      },
+      "links": [],
+      "events": {}
+    },
+    {
+      "spanId": "d953c73ab34c27f1",
+      "parentSpanId": "b2de88b8bb242b2b",
+      "name": "Span C",
+      "kind": "",
+      "traceId": "7k0t3a1u396m3r0r735u010u766p0g16",
+      "startTime": 1708928615685,
+      "endTime": 1708928615685,
+      "status": "",
+      "attributes": {
+        "service.name": "Consumer2",
+        "criteria.isDisallowed": "true"
+      },
+      "links": [],
+      "events": {}
+    },
+    {
+      "spanId": "abea57b424d5147a",      
+      "parentSpanId": "d953c73eff4c27f1",
+      "name": "Span B",
+      "kind": "",
+      "traceId": "4l154c061g5d5f144t6p6h4r4p1d305v",
+      "startTime": 1708928615685,
+      "endTime": 1708928615685,
+      "status": "",
+      "attributes": {
+        "service.name": "Consumer1",
+        "criteria.isDisallowed": "true"
+      },
+      "links": [],
+      "events": {}
+    },
+    {
+      "spanId": "d953c73eff4c27f1",
+      "name": "Span C",
+      "kind": "",
+      "traceId": "4l154c061g5d5f144t6p6h4r4p1d305v",
+      "startTime": 1708928615685,
+      "endTime": 1708928615685,
+      "status": "",
+      "attributes": {
+        "service.name": "Consumer2",
+        "criteria.isDisallowed": "true"
+      },
+      "links": [],
+      "events": {}
+    },
+  ];
+
+  return JSON.stringify(data);
+}
+
 export function getSimpleMicroserviceSampleJson(): string {
   const data = [
     {

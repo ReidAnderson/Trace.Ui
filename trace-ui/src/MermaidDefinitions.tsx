@@ -4,6 +4,7 @@ import { Span } from './Interfaces';
 export interface TraceChartProps {
   trace: Span[];
   disallowedSpanIds?: string[];
+  matchedSpanIds?: string[];
 }
 
 export function FlameGraph(props: TraceChartProps) {
@@ -43,7 +44,7 @@ export function FlameGraph(props: TraceChartProps) {
 
 export function SpanTree(props: TraceChartProps) {
 
-  let spanTreeString = `---\ntitle: Span Graph\n---\ngraph TD\n`;
+  let spanTreeString = `---\ntitle: Span Graphs\n---\ngraph TD\n`;
 
   // loop over each span and add a node for each if the parent span id is non null
   props.trace.forEach((span) => {
@@ -69,6 +70,12 @@ export function SpanTree(props: TraceChartProps) {
     });
   }
 
+  if (props.matchedSpanIds) {
+    props.matchedSpanIds.forEach((spanId) => {
+      spanTreeString += `  style ${spanId} fill:#0f0\n`;
+    });
+  }
+
   console.log(spanTreeString);
   return (
     <Box className="Spantree-wrapper">
@@ -84,12 +91,19 @@ export function ServiceGraph(props: TraceChartProps) {
     return acc;
   }, {} as { [key: string]: string });
 
+  let isInvalid: boolean = false;
+
   let connectionList: string[] = [];
 
   let serviceGraphString = `---\ntitle: Service Graph\n---\ngraph TD\n`;
 
   // loop over each span and if the connection between the parent and child span service names is not already in the connection list, add it
   props.trace.forEach((span) => {
+    if ((span.parentSpanId && !serviceMap[span.parentSpanId]) || !serviceMap[span.spanId]) {
+      isInvalid = true;
+      return;
+    }
+
     if (span.parentSpanId) {
       const parentService = serviceMap[span.parentSpanId].replace(/\s/g, '');
       const childService = serviceMap[span.spanId].replace(/\s/g, '');
@@ -106,6 +120,11 @@ export function ServiceGraph(props: TraceChartProps) {
 
   // loop over each span and if the link is not already in the connection list, add it
   props.trace.forEach((span) => {
+    if (!serviceMap[span.spanId]) {
+      isInvalid = true;
+      return;
+    }
+
     if (span.links) {
       span.links.forEach((link) => {
         const parentService = serviceMap[link.spanId].replace(/\s/g, '');
@@ -127,6 +146,14 @@ export function ServiceGraph(props: TraceChartProps) {
     serviceGraphString += `  ${connection}\n`;
   });
   console.log(serviceGraphString);
+
+  if (isInvalid) {
+    return (
+      <Box className="Servicegraph-wrapper">
+        <pre>Invalid trace data</pre>
+      </Box>
+    );
+  }
   return (
     <Box className="Servicegraph-wrapper">
       <pre className="mermaid">{serviceGraphString}</pre>

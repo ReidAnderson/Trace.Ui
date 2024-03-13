@@ -26,7 +26,14 @@ export interface TraceRequirement {
 export interface ComparisonResult {
     resultSummary: string;
     missingSpans: Span[];
+    matchedSpanIds: string[];
     missingSpanIds: string[];
     disallowedSpans: { [key: string]: Span[] };
     disallowedSpanIds: string[];
 }
+
+export enum SpanRelationship {
+    Link = "Link",
+    Parent = "Parent"
+}
+  

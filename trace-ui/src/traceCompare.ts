@@ -82,6 +82,7 @@ function evaluateParentSpanCompliance(span: Span, requiredSpan: Span, observedTr
 export function compare(observedTrace: Span[], requiredSpans: Span[], disallowedSpans: Span[]): ComparisonResult {
   let result: ComparisonResult = {
     resultSummary: "",
+    matchedSpanIds: [],
     missingSpans: [],
     missingSpanIds: [],
     disallowedSpans: {},
@@ -96,6 +97,7 @@ export function compare(observedTrace: Span[], requiredSpans: Span[], disallowed
       if (span.name === requiredSpan.name) {
         if (evaluateSpanEquality(span, requiredSpan) && evaluateParentSpanCompliance(span, requiredSpan, observedTrace, requiredSpans)) {
           isMissing = false;
+          result.matchedSpanIds.push(span.spanId);
           break;
         }
 
