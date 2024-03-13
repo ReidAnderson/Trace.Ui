@@ -3,11 +3,9 @@ import { Span, SpanRelationship } from "./Interfaces";
 import { styled } from '@mui/material/styles';
 import { Box, Paper, Button, Checkbox, Divider, FormControlLabel, Grid, Stack, TextField } from '@mui/material';
 import { isValidJson } from "./helper";
+import { FlameGraph, ServiceGraph, SpanTree } from "./MermaidDefinitions";
 
 export interface TraceEditorProps {
-  traces: string[];
-  selectedTrace: string;
-  setSelectedTrace: (trace: string) => void;
   inputSpans: Span[];
   setSpans: (spans: Span[]) => void;
 }
@@ -23,7 +21,6 @@ function generateTraceId(): string {
   window.crypto.getRandomValues(array);
   return Array.from(array).map(b => ('00' + b.toString(32)).slice(-2)).join('');
 }
-
 
 function getNewSpanFromSelected(span: Span | null, relation?: SpanRelationship): Span {
   if (!span) {
@@ -92,8 +89,9 @@ const Item = styled(Paper)(({ theme }) => ({
 export function TraceEditor(traceEditorProps: TraceEditorProps) {
   const [selectedSpan, setSelectedSpan] = useState<Span | null>(null);
   const [selectedSpanText, setSelectedSpanText] = useState('');
+  const [selectedTrace, setSelectedTrace] = useState<string>('');
 
-  const { inputSpans, setSpans, traces, selectedTrace, setSelectedTrace } = traceEditorProps;
+  const { inputSpans, setSpans } = traceEditorProps;
 
   useEffect(() => {
     let parsedJson = {} as Span;
@@ -114,10 +112,9 @@ export function TraceEditor(traceEditorProps: TraceEditorProps) {
     <Grid container spacing={2}>
       <Grid item xs={12}>
         <Item>Trace Editor</Item>
-        <Item>{traces.map((trace, index) => {
+        <Item>{inputSpans.reduce((acc, span) => { if (acc.includes(span.traceId)) { return acc; } else { return acc.concat(span.traceId) } }, [] as string[]).map((trace, index) => {
           return (
             <Button key={index} variant="contained" onClick={() => {
-              setSelectedSpanText('{}');
               setSelectedTrace(trace);
             }}>{trace}</Button>
           )
@@ -174,6 +171,15 @@ export function TraceEditor(traceEditorProps: TraceEditorProps) {
             helperText={!isValidJson(JSON.stringify(selectedSpan)) ? "Invalid JSON" : ""}
             fullWidth // Add this line to make the TextField take the entire grid space
           />
+        </Item>
+      </Grid>
+      <Grid item xs={12}>
+        <Item>Required Spans Visualization
+          <FlameGraph trace={traceEditorProps.inputSpans.filter(span => span.traceId === selectedTrace)} />
+          <hr />
+          <SpanTree trace={traceEditorProps.inputSpans.filter(span => span.traceId === selectedTrace)} />
+          <hr />
+          <ServiceGraph trace={traceEditorProps.inputSpans.filter(span => span.traceId === selectedTrace)} />
         </Item>
       </Grid>
     </Grid>

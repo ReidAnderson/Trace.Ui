@@ -20,8 +20,6 @@ export interface SpanProps {
 }
 
 function FormContent() {
-  const [traces, setTraces] = useState<string[]>([]);
-  const [selectedTrace, setSelectedTrace] = useState<string>('');
   const [spans, setSpans] = useState<Span[]>([]);
   const [requiredSpanText, setRequiredSpanText] = useState('');
 
@@ -37,12 +35,7 @@ function FormContent() {
   
       mermaid.initialize({ startOnLoad: true });
       mermaid.run();  
-
-    // retrieve all unique trace ids and set them in the traces state
-    const traceIds = new Set<string>();
-    spans.forEach((span) => traceIds.add(span.traceId));
-    setTraces(Array.from(traceIds));
-  }, [spans, selectedTrace]);
+  }, [spans]);
 
   useEffect(() => {
     if (requiredSpanText === JSON.stringify(spans, null, 2)) {
@@ -81,16 +74,7 @@ function FormContent() {
         </Item>
       </Grid>
       <Grid item xs={12}>
-        <TraceEditor selectedTrace={selectedTrace} setSelectedTrace={setSelectedTrace} traces={traces} inputSpans={spans} setSpans={setSpans} />
-      </Grid>
-      <Grid item xs={12}>
-        <Item>Required Spans Visualization
-          <FlameGraph trace={spans.filter(span => span.traceId === selectedTrace)} />
-          <hr />
-          <SpanTree trace={spans.filter(span => span.traceId === selectedTrace)} />
-          <hr />
-          <ServiceGraph trace={spans.filter(span => span.traceId === selectedTrace)} />
-        </Item>
+        <TraceEditor inputSpans={spans} setSpans={setSpans} />
       </Grid>
       <ObservedTrace criteriaSpans={spans}/>
     </Grid>

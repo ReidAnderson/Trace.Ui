@@ -11,9 +11,10 @@ export interface ObservedTraceProps {
 }
 
 export function ObservedTrace(observedTraceProps: ObservedTraceProps) {
+  console.log(JSON.stringify(observedTraceProps.criteriaSpans, null, 2));
   const [observedSpanText, setObservedSpanText] = useState('');
   const [observedSpans, setObservedSpans] = useState<Span[]>([]);
-  const [comparisonResult, setComparisonResult] = useState<ComparisonResult | null>(compare(observedSpans, observedTraceProps.criteriaSpans.filter(span => span.attributes["criteria.isDisallowed"] !== "true"), observedTraceProps.criteriaSpans.filter(span => span.attributes["criteria.isDisallowed"] === "true")));
+  const [comparisonResult, setComparisonResult] = useState<ComparisonResult | null>(compare(observedSpans, observedTraceProps.criteriaSpans.filter(span => span && span.attributes["criteria.isDisallowed"] !== "true"), observedTraceProps.criteriaSpans.filter(span => span && span.attributes["criteria.isDisallowed"] === "true")));
 
   useEffect(() => {
     console.log("Spans: ", JSON.stringify(observedTraceProps.criteriaSpans, null, 2));
