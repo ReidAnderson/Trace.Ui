@@ -116,6 +116,7 @@ export function TraceEditor(traceEditorProps: TraceEditorProps) {
           return (
             <Button key={index} variant="contained" onClick={() => {
               setSelectedTrace(trace);
+              setSelectedSpanText(inputSpans.filter(span => span.traceId === trace).length > 0 ? JSON.stringify(inputSpans.filter(span => span.traceId === trace)[0], null, 2) : '');
             }}>{trace}</Button>
           )
         })}</Item>
