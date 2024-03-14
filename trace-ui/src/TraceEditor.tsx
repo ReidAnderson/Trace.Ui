@@ -97,7 +97,6 @@ const getSpanIdFromText = (text: string) => {
 }
 
 export function TraceEditor(traceEditorProps: TraceEditorProps) {
-  const [selectedSpan, setSelectedSpan] = useState<Span | null>(null);
   const [selectedSpanText, setSelectedSpanText] = useState('');
   const [selectedTrace, setSelectedTrace] = useState<string>('');
 
@@ -121,7 +120,6 @@ export function TraceEditor(traceEditorProps: TraceEditorProps) {
         return;
       }
 
-      setSelectedSpan(parsedJson);
       let newSpans = [...inputSpans];
       newSpans[spanIdx] = parsedJson;
       setSpans(newSpans);  
@@ -165,7 +163,7 @@ export function TraceEditor(traceEditorProps: TraceEditorProps) {
           {inputSpans.filter(span => span.traceId === selectedTrace).map((span, index) => {
             return (
               <Stack key={index} direction="row" spacing={2}>
-                <Button variant="contained" onClick={() => { setSelectedSpan(span); setSelectedSpanText(JSON.stringify(span, null, 2)); }}>{`${span.name} (${span.spanId}, ${getServiceNameIfPresent(span)})`}</Button>
+                <Button variant="contained" onClick={() => { setSelectedSpanText(JSON.stringify(span, null, 2)); }}>{`${span.name} (${span.spanId}, ${getServiceNameIfPresent(span)})`}</Button>
                 <Button variant="contained" onClick={() => {
                   let newSpans = [...inputSpans];
 
