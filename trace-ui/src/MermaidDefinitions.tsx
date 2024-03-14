@@ -8,7 +8,14 @@ export interface TraceChartProps {
 }
 
 export function FlameGraph(props: TraceChartProps) {
-
+  if (!props.trace || props.trace.length === 0) {
+    return (
+      <Box className="Spantree-wrapper">
+        <pre>No trace data</pre>
+      </Box>
+    );
+  }
+  
   // if they aren't already, we need to order the spans by startDate so they appear in the correct order in the flamegraph
   props.trace.sort((a, b) => a.startTime - b.startTime);
 
@@ -43,6 +50,13 @@ export function FlameGraph(props: TraceChartProps) {
 }
 
 export function SpanTree(props: TraceChartProps) {
+  if (!props.trace || props.trace.length === 0) {
+    return (
+      <Box className="Spantree-wrapper">
+        <pre>No trace data</pre>
+      </Box>
+    );
+  }
 
   let spanTreeString = `---\ntitle: Span Graphs\n---\ngraph TD\n`;
 

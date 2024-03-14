@@ -22,7 +22,7 @@ function generateTraceId(): string {
   return Array.from(array).map(b => ('00' + b.toString(32)).slice(-2)).join('');
 }
 
-function getNewSpanFromSelected(span: Span | null, relation?: SpanRelationship): Span {
+function getNewSpanFromSelected(span: Span | undefined, relation?: SpanRelationship): Span {
   if (!span) {
     return getEmptySpan();
   }
@@ -86,6 +86,16 @@ const Item = styled(Paper)(({ theme }) => ({
   color: theme.palette.text.secondary,
 }));
 
+const getSpanIdFromText = (text: string) => {
+  let spanId: string | null = null;
+  try {
+    spanId = JSON.parse(text).spanId;
+    return spanId;
+  } catch (e) {
+    return spanId;
+  }
+}
+
 export function TraceEditor(traceEditorProps: TraceEditorProps) {
   const [selectedSpan, setSelectedSpan] = useState<Span | null>(null);
   const [selectedSpanText, setSelectedSpanText] = useState('');
@@ -93,16 +103,28 @@ export function TraceEditor(traceEditorProps: TraceEditorProps) {
 
   const { inputSpans, setSpans } = traceEditorProps;
 
+  if (selectedSpanText != '{}' && traceEditorProps.inputSpans.filter(span => span.spanId === getSpanIdFromText(selectedSpanText)).length === 0) {
+    // The selected span is no longer present in the list of spans. No longer display it.
+    setSelectedSpanText('{}');
+  }
+
   useEffect(() => {
     let parsedJson = {} as Span;
 
     try {
       parsedJson = JSON.parse(selectedSpanText);
-      setSelectedSpan(parsedJson);
+      let spanId = parsedJson.spanId;
+      let spanIdx = inputSpans.findIndex(span => span.spanId === spanId);
 
+      if (spanIdx === -1) {
+        console.error("No span with that ID found");
+        return;
+      }
+
+      setSelectedSpan(parsedJson);
       let newSpans = [...inputSpans];
-      newSpans[inputSpans.indexOf(selectedSpan!)] = parsedJson;
-      setSpans(newSpans);
+      newSpans[spanIdx] = parsedJson;
+      setSpans(newSpans);  
     } catch (e) {
       console.error("Invalid JSON");
     }
@@ -131,10 +153,10 @@ export function TraceEditor(traceEditorProps: TraceEditorProps) {
             setSpans([...inputSpans, getEmptySpan(selectedTrace)]);
           }}>Add New Span</Button>
           <Button variant="contained" onClick={() => {
-            setSpans([...inputSpans, getNewSpanFromSelected(selectedSpan, SpanRelationship.Parent)]);
+            setSpans([...inputSpans, getNewSpanFromSelected(inputSpans.find(s => s.spanId === getSpanIdFromText(selectedSpanText)), SpanRelationship.Parent)]);
           }}>Add Child Span</Button>
           <Button variant="contained" onClick={() => {
-            setSpans([...inputSpans, getNewSpanFromSelected(selectedSpan, SpanRelationship.Link)]);
+            setSpans([...inputSpans, getNewSpanFromSelected(inputSpans.find(s => s.spanId === getSpanIdFromText(selectedSpanText)), SpanRelationship.Link)]);
           }}>Add Linked Span</Button>
         </Item>
       </Grid>
@@ -168,8 +190,8 @@ export function TraceEditor(traceEditorProps: TraceEditorProps) {
             onChange={(e) => {
               setSelectedSpanText(e.target.value);
             }}
-            error={!isValidJson(JSON.stringify(selectedSpan))}
-            helperText={!isValidJson(JSON.stringify(selectedSpan)) ? "Invalid JSON" : ""}
+            error={!isValidJson(selectedSpanText)}
+            helperText={!isValidJson(selectedSpanText) ? "Invalid JSON" : ""}
             fullWidth // Add this line to make the TextField take the entire grid space
           />
         </Item>
