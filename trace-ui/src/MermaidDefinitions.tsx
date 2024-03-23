@@ -15,7 +15,7 @@ export function FlameGraph(props: TraceChartProps) {
       </Box>
     );
   }
-  
+
   // if they aren't already, we need to order the spans by startDate so they appear in the correct order in the flamegraph
   props.trace.sort((a, b) => a.startTime - b.startTime);
 
@@ -58,7 +58,7 @@ export function SpanTree(props: TraceChartProps) {
     );
   }
 
-  let spanTreeString = `---\ntitle: Span Graphs\n---\ngraph TD\n`;
+  let spanTreeString = `---\ntitle: Span Graph\n---\ngraph TD\n`;
 
   // loop over each span and add a node for each if the parent span id is non null
   props.trace.forEach((span) => {
@@ -80,7 +80,7 @@ export function SpanTree(props: TraceChartProps) {
 
   if (props.disallowedSpanIds) {
     props.disallowedSpanIds.forEach((spanId) => {
-      spanTreeString += `  style ${spanId} fill:#f00\n`;
+      spanTreeString += `  style ${spanId} fill:#0f0\n`;
     });
   }
 

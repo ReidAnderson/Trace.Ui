@@ -2,6 +2,7 @@ import { styled } from '@mui/material/styles';
 import { Box, Paper, Button, Checkbox, Divider, FormControlLabel, Grid, Stack, TextField } from '@mui/material';
 import { Span } from './Interfaces';
 import { getBackgroundSampleJson, getDaprSampleJson, getEventDrivenSampleJson, getSimpleMicroserviceSampleJson } from './presetData';
+import { simpleMicroservice_Compliant, eventDriven_Compliant, simpleMicroservice_NoncompliantDisallowed, simpleMicroservice_NoncompliantDuration } from './testData';
 
 export interface PresetProps {
   setRequiredSpanText: (text: string) => void;
@@ -30,6 +31,25 @@ export function Presets(props: PresetProps) {
       <Button variant="contained" onClick={() => {
         props.setRequiredSpanText(getEventDrivenSampleJson());
       }}>Preset: Event Driven System</Button>
+    </Item>
+  );
+}
+
+export function ObservedPresets(props: PresetProps) {
+  return (
+    <Item>
+      <Button variant="contained" onClick={() => {
+        props.setRequiredSpanText(simpleMicroservice_Compliant());
+      }}>Microservice: Conformant</Button>
+      {/* <Button variant="contained" onClick={() => {
+        props.setRequiredSpanText(simpleMicroservice_NoncompliantDuration());
+      }}>Microservice: Duration Non-Conformant</Button>
+      <Button variant="contained" onClick={() => {
+        props.setRequiredSpanText(simpleMicroservice_NoncompliantDisallowed());
+      }}>Microservice: Disallowed Non-Conformant</Button>
+      <Button variant="contained" onClick={() => {
+        props.setRequiredSpanText(getEventDrivenSampleJson());
+      }}>Event-Driven: Conformant</Button> */}
     </Item>
   );
 }

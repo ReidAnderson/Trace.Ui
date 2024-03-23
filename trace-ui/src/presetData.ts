@@ -174,7 +174,7 @@ export function getEventDrivenSampleJson(): string {
       "events": {},
       "kind": "",
       "links": [],
-      "name": "Span A",
+      "name": "aspnet_core.publish",
       "parentSpanId": "",
       "spanId": "a7088b42c8e60821",
       "startTime": 1708928615385,
@@ -183,7 +183,8 @@ export function getEventDrivenSampleJson(): string {
     },
     {
       "attributes": {
-        "service.name": "Consumer1"
+        "service.name": "Consumer1",
+        "criteria.allowNonImmediateParent": "true"
       },
       "endTime": 1708928615685,
       "events": {},
@@ -196,7 +197,7 @@ export function getEventDrivenSampleJson(): string {
           "traceState": ""
         }
       ],
-      "name": "Span B",
+      "name": "aspnet_core.consume",
       "parentSpanId": "",
       "spanId": "d8c82636d34ef2d5",
       "startTime": 1708928615585,
@@ -208,7 +209,8 @@ export function getEventDrivenSampleJson(): string {
         "design.description": "The order consumer consumes the submitted order",
         "design.sourceDesignSpanId": "a9501a002b9a4913",
         "design.sourceDesignTraceId": "43a5e3f20a9e47d691a26da248b595ee",
-        "service.name": "Consumer2"
+        "service.name": "Consumer2",
+        "criteria.allowNonImmediateParent": "true"
       },
       "endTime": "1708928616435",
       "events": [],
@@ -221,7 +223,7 @@ export function getEventDrivenSampleJson(): string {
           "traceState": ""
         }
       ],
-      "name": "Span C",
+      "name": "aspnet_core.consume",
       "parentSpanId": "",
       "spanId": "a9501a002b9a4913",
       "startTime": "1708928615990",
@@ -230,38 +232,8 @@ export function getEventDrivenSampleJson(): string {
       "traceState": ""
     },
     {
-      "spanId": "5fb67135e1ed2651",
-      "name": "Span D",
-      "kind": "",
-      "traceId": "43a5e3f20a9e47d691a26da248b595ee",
-      "startTime": 1708928616435,
-      "endTime": 1708928616435,
-      "status": "",
-      "parentSpanId": "a9501a002b9a4913",
-      "attributes": {
-        "service.name": "Consumer2"
-      },
-      "links": [],
-      "events": {}
-    },
-    {
-      "spanId": "d9a7e2efeca8dcca",
-      "parentSpanId": "d8c82636d34ef2d5",
-      "name": "Span E",
-      "kind": "",
-      "traceId": "43a5e3f20a9e47d691a26da248b595ee",
-      "startTime": 1708928616435,
-      "endTime": 1708928616435,
-      "status": "",
-      "attributes": {
-        "service.name": "Consumer1"
-      },
-      "links": [],
-      "events": {}
-    },
-    {
       "spanId": "b2de88b8bb242b2b",
-      "name": "Span B",
+      "name": "aspnet_core.consume",
       "kind": "",
       "traceId": "7k0t3a1u396m3r0r735u010u766p0g16",
       "startTime": 1708928615685,
@@ -277,7 +249,7 @@ export function getEventDrivenSampleJson(): string {
     {
       "spanId": "d953c73ab34c27f1",
       "parentSpanId": "b2de88b8bb242b2b",
-      "name": "Span C",
+      "name": "aspnet_core.consume",
       "kind": "",
       "traceId": "7k0t3a1u396m3r0r735u010u766p0g16",
       "startTime": 1708928615685,
@@ -291,9 +263,9 @@ export function getEventDrivenSampleJson(): string {
       "events": {}
     },
     {
-      "spanId": "abea57b424d5147a",      
+      "spanId": "abea57b424d5147a",
       "parentSpanId": "d953c73eff4c27f1",
-      "name": "Span B",
+      "name": "aspnet_core.consume",
       "kind": "",
       "traceId": "4l154c061g5d5f144t6p6h4r4p1d305v",
       "startTime": 1708928615685,
@@ -308,7 +280,7 @@ export function getEventDrivenSampleJson(): string {
     },
     {
       "spanId": "d953c73eff4c27f1",
-      "name": "Span C",
+      "name": "aspnet_core.consume",
       "kind": "",
       "traceId": "4l154c061g5d5f144t6p6h4r4p1d305v",
       "startTime": 1708928615685,
@@ -321,6 +293,38 @@ export function getEventDrivenSampleJson(): string {
       "links": [],
       "events": {}
     },
+    {
+      "spanId": "f183ca4b0c39a274",
+      "name": "sql_server.query",
+      "parentSpanId": "a9501a002b9a4913",
+      "kind": "",
+      "traceId": "43a5e3f20a9e47d691a26da248b595ee",
+      "startTime": 1708928616435,
+      "endTime": 1708928616435,
+      "status": "",
+      "attributes": {
+        "service.name": "Consumer2",
+        "criteria.allowNonImmediateParent": "true"
+      },
+      "links": [],
+      "events": {}
+    },
+    {
+      "spanId": "c0d197116b729027",
+      "name": "sql_server.query",
+      "parentSpanId": "d8c82636d34ef2d5",
+      "kind": "",
+      "traceId": "43a5e3f20a9e47d691a26da248b595ee",
+      "startTime": 1708928616435,
+      "endTime": 1708928616435,
+      "status": "",
+      "attributes": {
+        "service.name": "Consumer1",
+        "criteria.allowNonImmediateParent": "true"
+      },
+      "links": [],
+      "events": {}
+    }
   ];
 
   return JSON.stringify(data);
